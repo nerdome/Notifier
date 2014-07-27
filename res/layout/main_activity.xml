@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools" android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <Switch
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Receive alarms"
+            android:id="@+id/receiver" android:layout_gravity="center_horizontal" android:checked="false"/>
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" android:layout_weight="1" android:padding="20dp">
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+            <EditText
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/message" android:layout_row="0" android:layout_column="0"
+                    android:layout_columnSpan="1" android:layout_rowSpan="1" android:layout_gravity="fill_horizontal|bottom|center_horizontal"
+                    android:layout_weight="1" android:hint="Your message..."/>
+            <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Notify!"
+                    android:id="@+id/notify" android:layout_row="0" android:layout_column="1"
+                    android:layout_columnSpan="1" android:layout_rowSpan="1"/>
+        </LinearLayout>
+        <ListView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/targetList" android:layout_column="0"
+                android:layout_columnSpan="2" android:layout_row="2" android:layout_rowSpan="1"
+                android:choiceMode="singleChoice" android:clickable="true"
+                tools:listitem="@android:layout/simple_list_item_1" android:focusable="true"
+                android:focusableInTouchMode="true" android:longClickable="true" android:listSelector="#ff888888"
+                android:layout_weight="10"/>
+    </LinearLayout>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+        <EditText
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:ems="10"
+                android:id="@+id/targetText" android:layout_column="0" android:layout_columnSpan="1"
+                android:layout_rowSpan="1" android:layout_row="2"
+                android:focusable="true" android:focusableInTouchMode="true" android:layout_gravity="fill_horizontal|bottom"
+                android:singleLine="false" android:layout_weight="1" android:hint="Add new victim..."/>
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+"
+                android:id="@+id/addTarget" android:layout_row="2" android:layout_column="1"
+                android:layout_columnSpan="1" android:layout_rowSpan="1" android:layout_gravity="fill_horizontal"/>
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/coloredBackground" android:background="#ff44ff88">
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Large Text"
+            android:id="@+id/message" android:layout_centerVertical="true" android:layout_centerHorizontal="true"
+            android:textSize="36dp" android:textStyle="bold" android:textColor="#ff000000"/>
+</RelativeLayout>
