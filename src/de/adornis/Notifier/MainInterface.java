@@ -75,6 +75,8 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
 
         prefs = getSharedPreferences("settings", Context.MODE_PRIVATE);
         targets = getTargets();
+        USER = prefs.getString("user", "yorrd@adornis.de");
+        PASSWORD = prefs.getString("password", "123vorbei");
 
         findViewById(R.id.notify).setEnabled(false);
 
@@ -165,6 +167,11 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         prefs.edit().putStringSet("accounts", output).apply();
     }
 
+    private void credentialsUpdated() {
+        prefs.edit().putString("user", USER).apply();
+        prefs.edit().putString("password", PASSWORD).apply();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -175,6 +182,8 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
     @Override
     protected void onPause() {
         super.onPause();
+        credentialsUpdated();
+        targetListUpdated();
         unbindService(senderServiceConnection);
         unregisterReceiver(notConnectedReceiver);
     }
@@ -212,5 +221,6 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         MainInterface.PASSWORD = ((EditText) credentialsDialog.findViewById(R.id.password)).getText().toString();
         ((Button) findViewById(R.id.self)).setText(MainInterface.USER);
         ((Switch) findViewById(R.id.receiver)).setChecked(false);
+        credentialsUpdated();
     }
 }
