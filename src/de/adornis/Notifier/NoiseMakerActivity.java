@@ -53,7 +53,7 @@ public class NoiseMakerActivity extends Activity {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
-                    MainInterface.log("Sleep interrupted in MoiseMaker --> onCreate()" + e.getMessage());
+                    MainInterface.log("Sleep interrupted in NoiseMaker --> onCreate()" + e.getMessage());
                 }
             }
 
