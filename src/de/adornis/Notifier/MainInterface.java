@@ -120,6 +120,7 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
             public void onClick(View v) {
                 Intent i = new Intent(MainInterface.this, Sender.class);
                 i.putExtra("RECEIVER", currentTarget);
+                i.putExtra("MESSAGE", ((EditText) findViewById(R.id.message)).getText().toString());
                 startService(i);
             }
         });

@@ -72,7 +72,7 @@ public class Sender extends IntentService {
         Message msg = new Message();
         msg.setTo(receiver + "/NOTIFIER_RECEIVER");
         msg.setBody("YOU SHOULDN'T SEE THIS :: this is an alarm notification :: NOTIFIER App for Android");
-        JivePropertiesManager.addProperty(msg, "ALARM", "wake");
+        JivePropertiesManager.addProperty(msg, "ALARM", intent.getStringExtra("MESSAGE"));
 
         try {
             conn.sendPacket(msg);
