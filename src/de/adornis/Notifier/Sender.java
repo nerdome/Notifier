@@ -41,7 +41,7 @@ public class Sender extends IntentService {
                     conn.connect();
                     conn.login(MainInterface.USER, MainInterface.PASSWORD, "NOTIFIER_SENDER");
                 } catch (SmackException e) {
-                    MainInterface.log("SmackException in Sender --> connect() " + ((SmackException.ConnectionException)e).getFailedAddresses().get(0).toString());
+                    MainInterface.log("SmackException in Sender --> connect() " + e.getMessage());
                 } catch (IOException e) {
                     MainInterface.log("IOException in Sender --> connect() " + e.getMessage());
                 } catch (XMPPException e) {

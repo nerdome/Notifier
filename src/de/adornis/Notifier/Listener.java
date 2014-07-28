@@ -91,7 +91,7 @@ public class Listener extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         xmppWorkerThread.execute(MainInterface.connectionConfiguration);
 
-        flags += START_STICKY;
+        flags = START_STICKY;
         Notification.Builder nb = new Notification.Builder(getApplicationContext());
         nb.setDefaults(Notification.DEFAULT_ALL);
         startForeground(1234, nb.build());

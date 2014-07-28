@@ -1,6 +1,7 @@
 package de.adornis.Notifier;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.IntentService;
 import android.content.*;
 import android.os.*;
@@ -10,18 +11,22 @@ import android.widget.*;
 import org.jivesoftware.smack.ConnectionConfiguration;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-public class MainInterface extends Activity {
+public class MainInterface extends Activity implements DialogInterface.OnDismissListener {
 
-    public final static String USER = "yorrd";
-    public final static String PASSWORD = "123vorbei";
+    public static String USER = "yorrd";
+    public static String PASSWORD = "123vorbei";
 
+    SharedPreferences prefs;
     private String currentTarget = "";
-    private static ArrayList<String> targets = new ArrayList<String>();
-    static {
-        targets.add("yorrd@adornis.de");
-        targets.add("fightcookie@adornis.de");
-    }
+    private ArrayList<String> targets;
+
+    private String self = "yorrd@adornis.de";
+
+    private AlertDialog credentialsDialog;
 
     public static ConnectionConfiguration connectionConfiguration;
     static {
@@ -53,15 +58,52 @@ public class MainInterface extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
+        prefs = getSharedPreferences("settings", Context.MODE_PRIVATE);
+        targets = getTargets();
+
         findViewById(R.id.notify).setEnabled(false);
 
+        ((Button) findViewById(R.id.self)).setText(self);
+        findViewById(R.id.self).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder db = new AlertDialog.Builder(MainInterface.this);
+                db.setTitle("Account...");
+                db.setView(MainInterface.this.getLayoutInflater().inflate(R.layout.change_user_popup, null));
+                db.setOnDismissListener(MainInterface.this);
+                db.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                db.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                credentialsDialog = db.create();
+                credentialsDialog.show();
+            }
+        });
+
         ListView lv = (ListView) findViewById(R.id.targetList);
-        lv.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, targets));
+        lv.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, targets));
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 currentTarget = targets.get(position);
                 findViewById(R.id.notify).setEnabled(true);
+            }
+        });
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                String toRemove = ((TextView) view).getText().toString();
+                targets.remove(toRemove);
+                targetListUpdated();
+                return true;
             }
         });
         lv.setSelection(1);
@@ -79,6 +121,8 @@ public class MainInterface extends Activity {
             @Override
             public void onClick(View v) {
                 targets.add(((EditText) findViewById(R.id.targetText)).getText().toString());
+                ((EditText) findViewById(R.id.targetText)).setText("");
+                targetListUpdated();
             }
         });
 
@@ -94,6 +138,23 @@ public class MainInterface extends Activity {
         });
 
         ((Switch) findViewById(R.id.receiver)).setChecked(true);
+    }
+
+    private void targetListUpdated() {
+        ListView lv = (ListView) findViewById(R.id.targetList);
+        if(lv.getAdapter() instanceof ArrayAdapter) {
+            ArrayAdapter adapter = (ArrayAdapter) lv.getAdapter();
+            adapter.notifyDataSetChanged();
+        } else {
+            MainInterface.log("Something went horribly wrong while updating the Adapter which wasn't an ArrayAdapter as expected");
+        }
+
+        Iterator<String> input = targets.iterator();
+        Set<String> output = new HashSet<>();
+        while(input.hasNext()) {
+            output.add(input.next());
+        }
+        prefs.edit().putStringSet("accounts", output).apply();
     }
 
     @Override
@@ -122,5 +183,25 @@ public class MainInterface extends Activity {
         } else {
             Log.e("ADORNIS", message);
         }
+    }
+
+    private ArrayList<String> getTargets() {
+        Set<String> defaultTargets = new HashSet<>();
+        defaultTargets.add("yorrd@adornis.de");
+        defaultTargets.add("fightcookie@adornis.de");
+        Iterator<String> input = prefs.getStringSet("accounts", defaultTargets).iterator();
+        ArrayList<String> output = new ArrayList<>();
+        while(input.hasNext()) {
+            output.add(input.next());
+        }
+        return output;
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        MainInterface.USER = ((EditText) credentialsDialog.findViewById(R.id.account)).getText().toString();
+        MainInterface.PASSWORD = ((EditText) credentialsDialog.findViewById(R.id.password)).getText().toString();
+        ((Button) findViewById(R.id.self)).setText(MainInterface.USER);
+        ((Switch) findViewById(R.id.receiver)).setChecked(false);
     }
 }
