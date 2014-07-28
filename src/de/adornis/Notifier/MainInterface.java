@@ -17,7 +17,7 @@ import java.util.Set;
 
 public class MainInterface extends Activity implements DialogInterface.OnDismissListener {
 
-    public static String USER = "yorrd";
+    public static String USER = "yorrd@adornis.de";
     public static String PASSWORD = "123vorbei";
 
     SharedPreferences prefs;
@@ -27,6 +27,21 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
     private String self = "yorrd@adornis.de";
 
     private AlertDialog credentialsDialog;
+    private DialogInterface.OnClickListener dialogListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch(which) {
+                case DialogInterface.BUTTON_NEGATIVE:
+                    // actually doesn't do anything different than dismiss, there is no good way to not call onDismiss()
+                    // putting in existing values as a halfway workaround
+                    dialog.cancel();
+                case DialogInterface.BUTTON_POSITIVE:
+                    dialog.dismiss();
+                default:
+                    dialog.cancel();
+            }
+        }
+    };
 
     public static ConnectionConfiguration connectionConfiguration;
     static {
@@ -71,20 +86,12 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
                 db.setTitle("Account...");
                 db.setView(MainInterface.this.getLayoutInflater().inflate(R.layout.change_user_popup, null));
                 db.setOnDismissListener(MainInterface.this);
-                db.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                db.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
+                db.setPositiveButton("OK", dialogListener);
+                db.setNegativeButton("Cancel", dialogListener);
                 credentialsDialog = db.create();
                 credentialsDialog.show();
+                ((EditText) credentialsDialog.findViewById(R.id.account)).setText(USER);
+                ((EditText) credentialsDialog.findViewById(R.id.password)).setText(PASSWORD);
             }
         });
 
@@ -199,6 +206,7 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
 
     @Override
     public void onDismiss(DialogInterface dialog) {
+        MainInterface.log("dismissing");
         MainInterface.USER = ((EditText) credentialsDialog.findViewById(R.id.account)).getText().toString();
         MainInterface.PASSWORD = ((EditText) credentialsDialog.findViewById(R.id.password)).getText().toString();
         ((Button) findViewById(R.id.self)).setText(MainInterface.USER);

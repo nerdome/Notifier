@@ -27,7 +27,7 @@ public class Listener extends Service {
             conn = new XMPPTCPConnection(params[0]);
             try {
                 conn.connect();
-                conn.login(MainInterface.USER, MainInterface.PASSWORD, "NOTIFIER_RECEIVER");
+                conn.login(MainInterface.USER.substring(0, MainInterface.USER.indexOf('@')), MainInterface.PASSWORD, "NOTIFIER_RECEIVER");
 
                 ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
                     @Override

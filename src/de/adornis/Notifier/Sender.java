@@ -39,7 +39,7 @@ public class Sender extends IntentService {
                 conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
                 try {
                     conn.connect();
-                    conn.login(MainInterface.USER, MainInterface.PASSWORD, "NOTIFIER_SENDER");
+                    conn.login(MainInterface.USER.substring(0, MainInterface.USER.indexOf('@')), MainInterface.PASSWORD, "NOTIFIER_SENDER");
                 } catch (SmackException e) {
                     MainInterface.log("SmackException in Sender --> connect() " + e.getMessage());
                 } catch (IOException e) {
