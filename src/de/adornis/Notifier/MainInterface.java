@@ -188,12 +188,6 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         unregisterReceiver(notConnectedReceiver);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopService(new Intent(this, Listener.class));
-    }
-
     static void log(String message) {
         if(message == null) {
             Log.e("ADORNIS", "empty message (probably error)");
