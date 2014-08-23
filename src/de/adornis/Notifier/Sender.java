@@ -6,6 +6,7 @@ import android.os.IBinder;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 
@@ -40,6 +41,7 @@ public class Sender extends IntentService {
                 try {
                     conn.connect();
                     conn.login(MainInterface.USER.substring(0, MainInterface.USER.indexOf('@')), MainInterface.PASSWORD, "NOTIFIER_SENDER");
+	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.chat));
                 } catch (SmackException e) {
                     MainInterface.log("SmackException in Sender --> connect() " + e.getMessage());
                 } catch (IOException e) {

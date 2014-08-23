@@ -3,13 +3,17 @@ package de.adornis.Notifier;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.util.Log;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 
@@ -28,6 +32,7 @@ public class Listener extends Service {
             try {
                 conn.connect();
                 conn.login(MainInterface.USER.substring(0, MainInterface.USER.indexOf('@')), MainInterface.PASSWORD, "NOTIFIER_RECEIVER");
+	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
                 ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
                     @Override
@@ -73,7 +78,6 @@ public class Listener extends Service {
 
         @Override
         protected void onProgressUpdate(String... values) {
-
             Intent i = new Intent(getApplicationContext(), NoiseMakerActivity.class);
             i.putExtra("DURATION", 13);
             i.putExtra("MESSAGE", values[0]);
@@ -101,7 +105,6 @@ public class Listener extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
         disconnect();
     }
 
