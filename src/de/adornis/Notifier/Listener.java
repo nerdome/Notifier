@@ -23,10 +23,13 @@ import java.util.Map;
 public class Listener extends Service {
     XMPPTCPConnection conn = null;
 
+	public static boolean running  = false;
+
     private AsyncTask<ConnectionConfiguration, String, Void> xmppWorkerThread = new AsyncTask<ConnectionConfiguration, String, Void>() {
 
         @Override
         protected Void doInBackground(ConnectionConfiguration... params) {
+	        running = true;
 
             conn = new XMPPTCPConnection(params[0]);
             try {

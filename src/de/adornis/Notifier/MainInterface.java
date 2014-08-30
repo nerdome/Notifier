@@ -68,7 +68,7 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         }
     };
 
-    @Override
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
@@ -139,16 +139,19 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         ((Switch) findViewById(R.id.receiver)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    startService(new Intent(MainInterface.this, Listener.class));
+                if (isChecked && !Listener.running) {
+	                startService(new Intent(MainInterface.this, Listener.class));
+	                log("starting listener");
+	                Listener.running = true;
+                } else if(isChecked && Listener.running) {
                 } else {
                     stopService(new Intent(MainInterface.this, Listener.class));
+	                log("stopping listener");
+	                Listener.running = false;
                 }
             }
         });
-
-        ((Switch) findViewById(R.id.receiver)).setChecked(true);
-    }
+	}
 
     private void targetListUpdated() {
         ListView lv = (ListView) findViewById(R.id.targetList);
