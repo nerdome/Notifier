@@ -2,7 +2,9 @@ package de.adornis.Notifier;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.SmackException;
@@ -41,8 +43,12 @@ public class Sender extends IntentService {
             public void run() {
                 conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
                 try {
+	                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+	                String user = prefs.getString("user", "dummyuser");
+	                String password = prefs.getString("password", "dummypassword");
+
                     conn.connect();
-                    conn.login(MainInterface.USER.substring(0, MainInterface.USER.indexOf('@')), MainInterface.PASSWORD, "NOTIFIER_SENDER");
+                    conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_SENDER");
 	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.chat));
 
 	                for(RosterEntry current : conn.getRoster().getEntries()) {

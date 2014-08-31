@@ -3,13 +3,11 @@ package de.adornis.Notifier;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
@@ -33,8 +31,12 @@ public class Listener extends Service {
 
             conn = new XMPPTCPConnection(params[0]);
             try {
+	            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+	            String user = prefs.getString("user", "dummyuser");
+	            String password = prefs.getString("password", "dummypassword");
+
                 conn.connect();
-                conn.login(MainInterface.USER.substring(0, MainInterface.USER.indexOf('@')), MainInterface.PASSWORD, "NOTIFIER_RECEIVER");
+                conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
                 ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {

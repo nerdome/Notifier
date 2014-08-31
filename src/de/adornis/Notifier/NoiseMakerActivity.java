@@ -16,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.WindowManager;
@@ -116,11 +117,16 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
     protected void onDestroy() {
         super.onDestroy();
 
-        // open main activity
-        Intent uiIntent = new Intent(this, MainInterface.class);
-        uiIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        uiIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        this.startActivity(uiIntent);
+	    String packg = PreferenceManager.getDefaultSharedPreferences(this).getString("activity_after_wake", "");
+	    if(packg.equals("")) {
+		    // open main activity
+		    Intent uiIntent = new Intent(this, MainInterface.class);
+		    uiIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		    uiIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		    this.startActivity(uiIntent);
+	    } else {
+		    startActivity(getPackageManager().getLaunchIntentForPackage(packg));
+	    }
     }
 
 	@Override

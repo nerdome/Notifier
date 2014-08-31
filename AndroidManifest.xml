@@ -26,6 +26,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".NoiseMakerActivity" />
+        <activity android:name=".PreferenceEditor"/>
         <service android:name=".Listener" />
         <service android:name=".Sender" />
         <receiver android:name="de.adornis.Notifier.StartupReceiver">

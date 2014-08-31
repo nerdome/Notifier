@@ -5,7 +5,11 @@ import android.app.AlertDialog;
 import android.app.IntentService;
 import android.content.*;
 import android.os.*;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -18,31 +22,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class MainInterface extends Activity implements DialogInterface.OnDismissListener {
-
-    public static String USER = "yorrd@adornis.de";
-    public static String PASSWORD = "123vorbei";
+public class MainInterface extends Activity {
 
     SharedPreferences prefs;
     private String currentTarget = "";
     private ArrayList<String> targets;
-
-    private AlertDialog credentialsDialog;
-    private DialogInterface.OnClickListener dialogListener = new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            switch(which) {
-                case DialogInterface.BUTTON_NEGATIVE:
-                    // actually doesn't do anything different than dismiss, there is no good way to not call onDismiss()
-                    // putting in existing values as a halfway workaround
-                    dialog.cancel();
-                case DialogInterface.BUTTON_POSITIVE:
-                    dialog.dismiss();
-                default:
-                    dialog.cancel();
-            }
-        }
-    };
 
     public static ConnectionConfiguration connectionConfiguration;
     static {
@@ -98,29 +82,10 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
-        prefs = getSharedPreferences("settings", Context.MODE_PRIVATE);
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
         targets = getTargets();
-        USER = prefs.getString("user", "yorrd@adornis.de");
-        PASSWORD = prefs.getString("password", "123vorbei");
 
         findViewById(R.id.notify).setEnabled(false);
-
-        ((Button) findViewById(R.id.self)).setText(USER);
-        findViewById(R.id.self).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder db = new AlertDialog.Builder(MainInterface.this);
-                db.setTitle("Account...");
-                db.setView(MainInterface.this.getLayoutInflater().inflate(R.layout.change_user_popup, null));
-                db.setOnDismissListener(MainInterface.this);
-                db.setPositiveButton("OK", dialogListener);
-                db.setNegativeButton("Cancel", dialogListener);
-                credentialsDialog = db.create();
-                credentialsDialog.show();
-                ((EditText) credentialsDialog.findViewById(R.id.account)).setText(USER);
-                ((EditText) credentialsDialog.findViewById(R.id.password)).setText(PASSWORD);
-            }
-        });
 
         ListView lv = (ListView) findViewById(R.id.targetList);
         lv.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, targets));
@@ -174,6 +139,9 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
             }
         });
 
+		if(Listener.running) {
+			((Switch) findViewById(R.id.receiver)).setChecked(true);
+		}
         ((Switch) findViewById(R.id.receiver)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -191,7 +159,25 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         });
 	}
 
-    private void targetListUpdated() {
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.options_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+			case R.id.settings:
+				startActivity(new Intent(this, PreferenceEditor.class));
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
+	private void targetListUpdated() {
         ListView lv = (ListView) findViewById(R.id.targetList);
         if(lv.getAdapter() instanceof ArrayAdapter) {
             ArrayAdapter adapter = (ArrayAdapter) lv.getAdapter();
@@ -213,11 +199,6 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         prefs.edit().putStringSet("accounts", output).apply();
     }
 
-    private void credentialsUpdated() {
-        prefs.edit().putString("user", USER).apply();
-        prefs.edit().putString("password", PASSWORD).apply();
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -229,7 +210,6 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
     @Override
     protected void onPause() {
         super.onPause();
-        credentialsUpdated();
         targetListUpdated();
         unbindService(senderServiceConnection);
         unregisterReceiver(notConnectedReceiver);
@@ -254,15 +234,5 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
             output.add(input.next());
         }
         return output;
-    }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        MainInterface.log("dismissing");
-        MainInterface.USER = ((EditText) credentialsDialog.findViewById(R.id.account)).getText().toString();
-        MainInterface.PASSWORD = ((EditText) credentialsDialog.findViewById(R.id.password)).getText().toString();
-        ((Button) findViewById(R.id.self)).setText(MainInterface.USER);
-        ((Switch) findViewById(R.id.receiver)).setChecked(false);
-        credentialsUpdated();
     }
 }
