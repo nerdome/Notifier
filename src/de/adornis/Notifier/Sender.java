@@ -3,6 +3,8 @@ package de.adornis.Notifier;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.IBinder;
+import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
@@ -42,6 +44,16 @@ public class Sender extends IntentService {
                     conn.connect();
                     conn.login(MainInterface.USER.substring(0, MainInterface.USER.indexOf('@')), MainInterface.PASSWORD, "NOTIFIER_SENDER");
 	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.chat));
+
+	                for(RosterEntry current : conn.getRoster().getEntries()) {
+		                Intent i = new Intent("ROSTER");
+						if(conn.getRoster().getPresence(current.getUser()).getType() == Presence.Type.available) {
+							i.putExtra("ONLINE", current.getUser());
+						} else {
+							i.putExtra("OFFLINE", current.getUser());
+						}
+		                sendBroadcast(i);
+	                }
                 } catch (SmackException e) {
                     MainInterface.log("SmackException in Sender --> connect() " + e.getMessage());
                 } catch (IOException e) {

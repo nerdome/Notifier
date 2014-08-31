@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.*;
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterEntry;
+import org.jivesoftware.smack.packet.Presence;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,8 +26,6 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
     SharedPreferences prefs;
     private String currentTarget = "";
     private ArrayList<String> targets;
-
-    private String self = "yorrd@adornis.de";
 
     private AlertDialog credentialsDialog;
     private DialogInterface.OnClickListener dialogListener = new DialogInterface.OnClickListener() {
@@ -68,6 +69,30 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         }
     };
 
+	private BroadcastReceiver rosterReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String user = "";
+			boolean online = false;
+			if(intent.getStringExtra("ONLINE") != null) {
+				user = intent.getStringExtra("ONLINE");
+				online = true;
+			} else if(intent.getStringExtra("OFFLINE") != null) {
+				user = intent.getStringExtra("OFFLINE");
+				online = false;
+			}
+			for(int i = 0; i < targets.size(); i++) {
+				if(targets.get(i).equals("ONLINE : " + user) || targets.get(i).equals("OFFLINE : " + user) || targets.get(i).equals(user)) {
+					if(targets.get(i).contains(" : ")) {
+						targets.set(i, (online ? "ONLINE : " : "OFFLINE : ") + targets.get(i).substring(targets.get(i).indexOf(" : ") + 3));
+					} else {
+						targets.set(i, (online ? "ONLINE : " : "OFFLINE : ") + targets.get(i));
+					}
+				}
+			}
+		}
+	};
+
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,7 +105,7 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
 
         findViewById(R.id.notify).setEnabled(false);
 
-        ((Button) findViewById(R.id.self)).setText(self);
+        ((Button) findViewById(R.id.self)).setText(USER);
         findViewById(R.id.self).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,6 +128,9 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 currentTarget = targets.get(position);
+	            if(currentTarget.contains(" : ")) {
+		            currentTarget = currentTarget.substring(currentTarget.indexOf(" : ") + 3);
+	            }
                 findViewById(R.id.notify).setEnabled(true);
             }
         });
@@ -126,6 +154,16 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
                 startService(i);
             }
         });
+
+		findViewById(R.id.refresh).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				unbindService(senderServiceConnection);
+				stopService(new Intent(MainInterface.this, Sender.class));
+				bindService(new Intent(MainInterface.this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
+				targetListUpdated();
+			}
+		});
 
         findViewById(R.id.addTarget).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,7 +203,12 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         Iterator<String> input = targets.iterator();
         Set<String> output = new HashSet<>();
         while(input.hasNext()) {
-            output.add(input.next());
+	        String toBeAdded = input.next();
+	        if(toBeAdded.contains(" : ")) {
+		        output.add(toBeAdded.substring(toBeAdded.indexOf(" : ") + 3));
+	        } else {
+		        output.add(toBeAdded);
+	        }
         }
         prefs.edit().putStringSet("accounts", output).apply();
     }
@@ -180,6 +223,7 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         super.onResume();
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
         registerReceiver(notConnectedReceiver, new IntentFilter("LISTENER_NOT_CONNECTED"));
+	    registerReceiver(rosterReceiver, new IntentFilter("ROSTER"));
     }
 
     @Override
@@ -189,6 +233,7 @@ public class MainInterface extends Activity implements DialogInterface.OnDismiss
         targetListUpdated();
         unbindService(senderServiceConnection);
         unregisterReceiver(notConnectedReceiver);
+	    unregisterReceiver(rosterReceiver);
     }
 
     static void log(String message) {

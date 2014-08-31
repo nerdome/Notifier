@@ -8,11 +8,15 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Camera;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.media.SoundPool;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -20,12 +24,17 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.util.Random;
 
-public class NoiseMakerActivity extends Activity implements MediaPlayer.OnPreparedListener {
+public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadCompleteListener {
+
+	private int dur = 0;
+	private int soundDuration = 1;
 
     AsyncTask<Integer, Void, Void> noiseMaker = new AsyncTask<Integer, Void, Void>() {
 
         @Override
         protected Void doInBackground(Integer... duration) {
+
+	        dur = duration[0];
 
             Vibrator vib = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
             PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
@@ -38,10 +47,9 @@ public class NoiseMakerActivity extends Activity implements MediaPlayer.OnPrepar
 		        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
 		        cam.setParameters(p);
 	        }
-	        MediaPlayer mp = MediaPlayer.create(getApplicationContext(), Settings.System.DEFAULT_RINGTONE_URI);
-	        mp.setAudioStreamType(AudioManager.STREAM_ALARM);
-	        mp.setLooping(true);
-	        mp.setOnPreparedListener(NoiseMakerActivity.this);
+	        SoundPool sp = new SoundPool(1, AudioManager.STREAM_ALARM, 100);
+	        sp.setOnLoadCompleteListener(NoiseMakerActivity.this);
+	        sp.load(getApplicationContext(), R.raw.toyphone_dialling, 1);
 
             wl.acquire();
             kl.disableKeyguard();
@@ -55,10 +63,10 @@ public class NoiseMakerActivity extends Activity implements MediaPlayer.OnPrepar
                 }
             });
 
-            vib.vibrate(duration[0] * 1000);
+            vib.vibrate(dur * 1000);
 
             Random rnd = new Random();
-            for(int i = 0; i < duration[0] * 1000; i += 100) {
+            for(int i = 0; i < dur * 1000; i += 100) {
                 final int color = Color.argb(255, 160 + rnd.nextInt(96), 160 + rnd.nextInt(96), 160 + rnd.nextInt(96));
                 NoiseMakerActivity.this.runOnUiThread(new Runnable() {
                     @Override
@@ -78,8 +86,6 @@ public class NoiseMakerActivity extends Activity implements MediaPlayer.OnPrepar
 	        if(getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
 		        cam.release();
 	        }
-	        mp.setLooping(false);
-	        mp.release();
 
             NoiseMakerActivity.this.finish();
 
@@ -91,6 +97,12 @@ public class NoiseMakerActivity extends Activity implements MediaPlayer.OnPrepar
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.noise_maker);
+
+	    MediaMetadataRetriever data = new MediaMetadataRetriever();
+	    data.setDataSource(getApplicationContext(), Uri.parse("android.resource://de.adornis.Notifier/" + R.raw.toyphone_dialling));
+	    String dur = data.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+	    soundDuration = Integer.parseInt(dur) / 1000;
+	    data.release();
 
         noiseMaker.execute(getIntent().getIntExtra("DURATION", 3));
 
@@ -112,7 +124,7 @@ public class NoiseMakerActivity extends Activity implements MediaPlayer.OnPrepar
     }
 
 	@Override
-	public void onPrepared(MediaPlayer mp) {
-		mp.start();
+	public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+		soundPool.play(sampleId, 1, 1, 1, dur / soundDuration - 1, 1);
 	}
 }
