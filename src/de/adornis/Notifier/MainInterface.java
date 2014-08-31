@@ -1,7 +1,6 @@
 package de.adornis.Notifier;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.IntentService;
 import android.content.*;
 import android.graphics.Color;
@@ -14,9 +13,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.Roster;
-import org.jivesoftware.smack.RosterEntry;
-import org.jivesoftware.smack.packet.Presence;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -74,6 +70,14 @@ public class MainInterface extends Activity {
 		}
 	};
 
+	private ListView targetListView;
+	private Button notifyButton;
+	private Button refreshButton;
+	private Button addTargetButton;
+	private Switch receiverSwitch;
+	private EditText targetEditText;
+	private EditText messageEditText;
+
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,40 +86,46 @@ public class MainInterface extends Activity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         targets = getTargets();
 
-        findViewById(R.id.notify).setEnabled(false);
+		targetListView = (ListView) findViewById(R.id.targetList);
+		notifyButton = (Button) findViewById(R.id.notify);
+		refreshButton = (Button) findViewById(R.id.refresh);
+		addTargetButton = (Button) findViewById(R.id.addTarget);
+		receiverSwitch = (Switch) findViewById(R.id.receiver);
+		targetEditText = (EditText) findViewById(R.id.targetText);
+		messageEditText = (EditText) findViewById(R.id.message);
 
-        ListView lv = (ListView) findViewById(R.id.targetList);
-		lv.setBackgroundColor(Color.rgb(100,100,180));
-        lv.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, targets));
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                currentTarget = targets.get(position);
-                findViewById(R.id.notify).setEnabled(true);
-            }
+		targetListView.setBackgroundColor(Color.rgb(100, 100, 180));
+        targetListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, targets));
+        targetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+	        @Override
+	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		        currentTarget = targets.get(position);
+		        notifyButton.setEnabled(true);
+	        }
         });
-        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                String toRemove = ((TextView) view).getText().toString();
-                targets.remove(toRemove);
-                targetListUpdated();
-                return true;
-            }
+        targetListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+	        @Override
+	        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+		        String toRemove = ((TextView) view).getText().toString();
+		        targets.remove(toRemove);
+		        targetListUpdated();
+		        return true;
+	        }
         });
-        lv.setSelection(1);
+        targetListView.setSelection(1);
 
-        findViewById(R.id.notify).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(MainInterface.this, Sender.class);
-                i.putExtra("RECEIVER", currentTarget);
-                i.putExtra("MESSAGE", ((EditText) findViewById(R.id.message)).getText().toString());
-                startService(i);
-            }
+		notifyButton.setEnabled(false);
+        notifyButton.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+		        Intent i = new Intent(MainInterface.this, Sender.class);
+		        i.putExtra("RECEIVER", currentTarget);
+		        i.putExtra("MESSAGE", messageEditText.getText().toString());
+		        startService(i);
+	        }
         });
 
-		findViewById(R.id.refresh).setOnClickListener(new View.OnClickListener() {
+		refreshButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				unbindService(senderServiceConnection);
@@ -125,32 +135,32 @@ public class MainInterface extends Activity {
 			}
 		});
 
-        findViewById(R.id.addTarget).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                targets.add(((EditText) findViewById(R.id.targetText)).getText().toString());
-                ((EditText) findViewById(R.id.targetText)).setText("");
-                targetListUpdated();
-            }
+        addTargetButton.setOnClickListener(new View.OnClickListener() {
+	        @Override
+	        public void onClick(View v) {
+		        targets.add(targetEditText.getText().toString());
+		        targetEditText.setText("");
+		        targetListUpdated();
+	        }
         });
 
 		if(Listener.running) {
-			((Switch) findViewById(R.id.receiver)).setChecked(true);
+			receiverSwitch.setChecked(true);
 		}
-        ((Switch) findViewById(R.id.receiver)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked && !Listener.running) {
-	                startService(new Intent(MainInterface.this, Listener.class));
-	                log("starting listener");
-	                Listener.running = true;
-                } else if(isChecked && Listener.running) {
-                } else {
-                    stopService(new Intent(MainInterface.this, Listener.class));
-	                log("stopping listener");
-	                Listener.running = false;
-                }
-            }
+        receiverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+	        @Override
+	        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		        if (isChecked && !Listener.running) {
+			        startService(new Intent(MainInterface.this, Listener.class));
+			        log("starting listener");
+			        Listener.running = true;
+		        } else if (isChecked && Listener.running) {
+		        } else {
+			        stopService(new Intent(MainInterface.this, Listener.class));
+			        log("stopping listener");
+			        Listener.running = false;
+		        }
+	        }
         });
 	}
 
@@ -173,9 +183,8 @@ public class MainInterface extends Activity {
 	}
 
 	private void targetListUpdated() {
-        ListView lv = (ListView) findViewById(R.id.targetList);
-        if(lv.getAdapter() instanceof ArrayAdapter) {
-            ArrayAdapter adapter = (ArrayAdapter) lv.getAdapter();
+        if(targetListView.getAdapter() instanceof ArrayAdapter) {
+            ArrayAdapter adapter = (ArrayAdapter) targetListView.getAdapter();
             adapter.notifyDataSetChanged();
         } else {
             MainInterface.log("Something went horribly wrong while updating the Adapter which wasn't an ArrayAdapter as expected");
