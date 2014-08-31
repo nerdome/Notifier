@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.IntentService;
 import android.content.*;
+import android.graphics.Color;
 import android.os.*;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -66,12 +67,8 @@ public class MainInterface extends Activity {
 				online = false;
 			}
 			for(int i = 0; i < targets.size(); i++) {
-				if(targets.get(i).equals("ONLINE : " + user) || targets.get(i).equals("OFFLINE : " + user) || targets.get(i).equals(user)) {
-					if(targets.get(i).contains(" : ")) {
-						targets.set(i, (online ? "ONLINE : " : "OFFLINE : ") + targets.get(i).substring(targets.get(i).indexOf(" : ") + 3));
-					} else {
-						targets.set(i, (online ? "ONLINE : " : "OFFLINE : ") + targets.get(i));
-					}
+				if(targets.get(i).equals(user)) {
+					((ListView) findViewById(R.id.targetList)).getChildAt(i).setBackgroundColor(online ? Color.rgb(180,100,100) : Color.rgb(100,180,100));
 				}
 			}
 		}
@@ -88,14 +85,12 @@ public class MainInterface extends Activity {
         findViewById(R.id.notify).setEnabled(false);
 
         ListView lv = (ListView) findViewById(R.id.targetList);
+		lv.setBackgroundColor(Color.rgb(100,100,180));
         lv.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, targets));
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 currentTarget = targets.get(position);
-	            if(currentTarget.contains(" : ")) {
-		            currentTarget = currentTarget.substring(currentTarget.indexOf(" : ") + 3);
-	            }
                 findViewById(R.id.notify).setEnabled(true);
             }
         });
@@ -189,12 +184,7 @@ public class MainInterface extends Activity {
         Iterator<String> input = targets.iterator();
         Set<String> output = new HashSet<>();
         while(input.hasNext()) {
-	        String toBeAdded = input.next();
-	        if(toBeAdded.contains(" : ")) {
-		        output.add(toBeAdded.substring(toBeAdded.indexOf(" : ") + 3));
-	        } else {
-		        output.add(toBeAdded);
-	        }
+	        output.add(input.next());
         }
         prefs.edit().putStringSet("accounts", output).apply();
     }
