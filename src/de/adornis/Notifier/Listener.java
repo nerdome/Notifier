@@ -32,8 +32,8 @@ public class Listener extends Service {
             conn = new XMPPTCPConnection(params[0]);
             try {
 	            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-	            String user = prefs.getString("user", "dummyuser");
-	            String password = prefs.getString("password", "dummypassword");
+	            String user = prefs.getString("user", "yorrd@adornis.de");
+	            String password = prefs.getString("password", "123vorbei");
 
                 conn.connect();
                 conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_RECEIVER");

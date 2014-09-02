@@ -3,6 +3,8 @@ package de.adornis.Notifier;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import org.jivesoftware.smack.Roster;
@@ -18,7 +20,12 @@ import java.io.IOException;
 
 public class Sender extends IntentService {
 
-    XMPPTCPConnection conn = null;
+	public final static int DEFAULT = 0;
+	public final static int TIMED = 1;
+
+    private XMPPTCPConnection conn = null;
+
+	private Message msg;
 
     public Sender() {
         super("XMPP Wakeup Call Sender");
@@ -89,23 +96,49 @@ public class Sender extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         String receiver = intent.getStringExtra("RECEIVER");
-        Message msg = new Message();
+        msg = new Message();
         msg.setTo(receiver + "/NOTIFIER_RECEIVER");
         msg.setBody("YOU SHOULDN'T SEE THIS :: this is an alarm notification :: NOTIFIER App for Android");
         JivePropertiesManager.addProperty(msg, "ALARM", intent.getStringExtra("MESSAGE"));
 
-        try {
-            conn.sendPacket(msg);
-        } catch (SmackException.NotConnectedException e) {
-            // try to reestablish the connection
-            MainInterface.log("was logged out, logging back in! " + e.getMessage());
-            connect();
-            try {
-                conn.sendPacket(msg);
-            } catch (SmackException.NotConnectedException e1) {
-                MainInterface.log(e1.getMessage());
-                // really can't start for some reason
-            }
-        }
+	    switch(intent.getIntExtra("TYPE", DEFAULT)) {
+	        case DEFAULT:
+		        sendMessage();
+		        break;
+		    case TIMED:
+			    final long duration = intent.getIntExtra("timer_duration", 10) * 1000;
+			    new CountDownTimer(duration, 1000) {
+				    @Override
+				    public void onTick(long millisUntilFinished) {
+
+				    }
+
+				    @Override
+				    public void onFinish() {
+					    MainInterface.log("im here");
+						sendMessage();
+				    }
+			    }.start();
+			    break;
+		    default:
+			    MainInterface.log("issue identifying the type of the message to be sent in Sender service");
+			    break;
+	    }
     }
+
+	private void sendMessage() {
+		try {
+			conn.sendPacket(msg);
+		} catch (SmackException.NotConnectedException e) {
+			// try to reestablish the connection
+			MainInterface.log("was logged out, logging back in! " + e.getMessage());
+			connect();
+			try {
+				conn.sendPacket(msg);
+			} catch (SmackException.NotConnectedException e1) {
+				MainInterface.log(e1.getMessage());
+				// really can't start for some reason
+			}
+		}
+	}
 }

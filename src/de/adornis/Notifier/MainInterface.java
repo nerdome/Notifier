@@ -121,6 +121,8 @@ public class MainInterface extends Activity {
 		        Intent i = new Intent(MainInterface.this, Sender.class);
 		        i.putExtra("RECEIVER", currentTarget);
 		        i.putExtra("MESSAGE", messageEditText.getText().toString());
+		        i.putExtra("TYPE", Sender.TIMED);
+		        i.putExtra("timer_duration", 5);
 		        startService(i);
 	        }
         });
@@ -203,7 +205,7 @@ public class MainInterface extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-	    if(prefs.getBoolean("receiver_online", false)) {
+	    if(prefs.getBoolean("receiver_online", false) && !Listener.running) {
 		    startService(new Intent(this, Listener.class));
 	    }
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
