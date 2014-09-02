@@ -154,11 +154,13 @@ public class MainInterface extends Activity {
 			        startService(new Intent(MainInterface.this, Listener.class));
 			        log("starting listener");
 			        Listener.running = true;
+			        prefs.edit().putBoolean("receiver_online", true).commit();
 		        } else if (isChecked && Listener.running) {
 		        } else {
 			        stopService(new Intent(MainInterface.this, Listener.class));
 			        log("stopping listener");
 			        Listener.running = false;
+			        prefs.edit().putBoolean("receiver_online", false).commit();
 		        }
 	        }
         });
@@ -201,6 +203,9 @@ public class MainInterface extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+	    if(prefs.getBoolean("receiver_online", false)) {
+		    startService(new Intent(this, Listener.class));
+	    }
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
         registerReceiver(notConnectedReceiver, new IntentFilter("LISTENER_NOT_CONNECTED"));
 	    registerReceiver(rosterReceiver, new IntentFilter("ROSTER"));
@@ -210,6 +215,7 @@ public class MainInterface extends Activity {
     protected void onPause() {
         super.onPause();
         targetListUpdated();
+	    prefs.edit().putBoolean("receiver_online", Listener.running).commit();
         unbindService(senderServiceConnection);
         unregisterReceiver(notConnectedReceiver);
 	    unregisterReceiver(rosterReceiver);
