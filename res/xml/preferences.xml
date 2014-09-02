@@ -18,4 +18,10 @@
                             android:summary="When you have been notified, Notifier will try to open the app in this package"
                             android:defaultValue="" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="General Behavior">
+        <CheckBoxPreference android:key="start_after_boot"
+                            android:title="Start after boot"
+                            android:summary="If you enabled receiving notifications before booting your phone, it will be reactivated if you check this"
+                            android:defaultValue="true" />
+    </PreferenceCategory>
 </PreferenceScreen>
