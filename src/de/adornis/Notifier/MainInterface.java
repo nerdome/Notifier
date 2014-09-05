@@ -86,6 +86,10 @@ public class MainInterface extends Activity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         targets = getTargets();
 
+		if(prefs.getString("user", "???").equals("???")) {
+			startActivity(new Intent(this, FirstStart.class));
+		}
+
 		targetListView = (ListView) findViewById(R.id.targetList);
 		notifyButton = (Button) findViewById(R.id.notify);
 		refreshButton = (Button) findViewById(R.id.refresh);
