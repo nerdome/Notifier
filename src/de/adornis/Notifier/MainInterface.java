@@ -173,7 +173,13 @@ public class MainInterface extends Activity {
         addTargetButton.setOnClickListener(new View.OnClickListener() {
 	        @Override
 	        public void onClick(View v) {
-		        targets.add(targetEditText.getText().toString().toLowerCase());
+		        String thatNewGuy = targetEditText.getText().toString().toLowerCase();
+		        if(thatNewGuy.contains("@") && thatNewGuy.contains(".")) {
+			        targets.add(thatNewGuy);
+		        } else {
+			        // this works, passing null as listener will make it do nothing on click which is exactly what we want for this OK button
+			        (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain)").setPositiveButton("OK", null).create().show();
+		        }
 		        targetEditText.setText("");
 		        targetListUpdated();
 	        }
