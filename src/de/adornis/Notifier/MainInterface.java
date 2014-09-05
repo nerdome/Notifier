@@ -1,6 +1,7 @@
 package de.adornis.Notifier;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.IntentService;
 import android.content.*;
 import android.graphics.Color;
@@ -113,10 +114,34 @@ public class MainInterface extends Activity {
         });
         targetListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 	        @Override
-	        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-		        String toRemove = ((TextView) view).getText().toString();
-		        targets.remove(toRemove);
-		        targetListUpdated();
+	        public boolean onItemLongClick(AdapterView<?> parent, final View view, int position, long id) {
+		        AlertDialog.Builder db = new AlertDialog.Builder(MainInterface.this);
+		        db.setTitle("Confirm");
+		        db.setMessage("Do you really want to remove " + ((TextView) view).getText().toString() + " from your contact list?");
+		        db.setNegativeButton("Don't remove", new DialogInterface.OnClickListener() {
+			        @Override
+			        public void onClick(DialogInterface dialog, int which) {
+				        dialog.dismiss();
+			        }
+		        });
+		        db.setPositiveButton("Remove", new DialogInterface.OnClickListener() {
+			        @Override
+			        public void onClick(DialogInterface dialog, int which) {
+
+				        String toRemove = ((TextView) view).getText().toString();
+				        targets.remove(toRemove);
+
+				        unbindService(senderServiceConnection);
+				        stopService(new Intent(MainInterface.this, Sender.class));
+				        bindService(new Intent(MainInterface.this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
+
+				        targetListUpdated();
+
+				        dialog.dismiss();
+			        }
+		        });
+		        AlertDialog dialog = db.create();
+		        dialog.show();
 		        return true;
 	        }
         });
