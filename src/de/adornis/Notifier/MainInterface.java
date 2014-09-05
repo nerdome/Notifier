@@ -45,10 +45,10 @@ public class MainInterface extends Activity {
         }
     };
 
-    private BroadcastReceiver notConnectedReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver connectedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            ((Switch) findViewById(R.id.receiver)).setChecked(false);
+	        receiverSwitch.setChecked(Listener.running);
         }
     };
 
@@ -154,8 +154,7 @@ public class MainInterface extends Activity {
 		        Intent i = new Intent(MainInterface.this, Sender.class);
 		        i.putExtra("RECEIVER", currentTarget);
 		        i.putExtra("MESSAGE", messageEditText.getText().toString());
-		        i.putExtra("TYPE", Sender.TIMED);
-		        i.putExtra("timer_duration", 5);
+		        i.putExtra("TYPE", Sender.DEFAULT);
 		        startService(i);
 	        }
         });
@@ -260,7 +259,7 @@ public class MainInterface extends Activity {
 		    startService(new Intent(this, Listener.class));
 	    }
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
-        registerReceiver(notConnectedReceiver, new IntentFilter("LISTENER_NOT_CONNECTED"));
+        registerReceiver(connectedReceiver, new IntentFilter("LISTENER_CONNECTED"));
 	    registerReceiver(rosterReceiver, new IntentFilter("ROSTER"));
     }
 
@@ -270,7 +269,7 @@ public class MainInterface extends Activity {
         targetListUpdated();
 	    prefs.edit().putBoolean("receiver_online", Listener.running).commit();
         unbindService(senderServiceConnection);
-        unregisterReceiver(notConnectedReceiver);
+        unregisterReceiver(connectedReceiver);
 	    unregisterReceiver(rosterReceiver);
     }
 

@@ -28,7 +28,6 @@ public class Listener extends Service {
 
         @Override
         protected Void doInBackground(ConnectionConfiguration... params) {
-	        running = true;
 
 	        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 	        String user = prefs.getString("user", "yorrd@adornis.de");
@@ -40,6 +39,9 @@ public class Listener extends Service {
                 conn.connect();
                 conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
+	            running = true;
+
+	            sendBroadcast(new Intent("LISTENER_CONNECTED"));
 
                 ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
                     @Override
@@ -68,15 +70,15 @@ public class Listener extends Service {
                 });
             } catch (SmackException e) {
                 MainInterface.log("SmackException while connecting in Listener " + e.getMessage());
-                getApplicationContext().sendBroadcast(new Intent("LISTENER_NOT_CONNECTED"));
+                getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
                 disconnect();
             } catch (IOException e) {
                 MainInterface.log("IOException while connecting in Listener " + e.getMessage());
-                getApplicationContext().sendBroadcast(new Intent("LISTENER_NOT_CONNECTED"));
+                getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
                 disconnect();
             } catch (XMPPException e) {
                 MainInterface.log("XMPPException while connecting in Listener " + e.getMessage());
-                getApplicationContext().sendBroadcast(new Intent("LISTENER_NOT_CONNECTED"));
+                getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
                 disconnect();
             }
 
