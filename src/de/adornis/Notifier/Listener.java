@@ -132,4 +132,22 @@ public class Listener extends Service {
             }
         })).start();
     }
+
+	public static boolean verify(String user, String password) {
+		XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
+		try {
+			conn.connect();
+			conn.login(user, password);
+		} catch (XMPPException e) {
+			e.printStackTrace();
+			return false;
+		} catch (SmackException e) {
+			e.printStackTrace();
+			return false;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 }
