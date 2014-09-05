@@ -30,12 +30,13 @@ public class Listener extends Service {
         protected Void doInBackground(ConnectionConfiguration... params) {
 	        running = true;
 
-            conn = new XMPPTCPConnection(params[0]);
-            try {
-	            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-	            String user = prefs.getString("user", "yorrd@adornis.de");
-	            String password = prefs.getString("password", "123vorbei");
+	        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+	        String user = prefs.getString("user", "yorrd@adornis.de");
+	        String password = prefs.getString("password", "123vorbei");
 
+
+	        conn = new XMPPTCPConnection(params[0]);
+            try {
                 conn.connect();
                 conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
@@ -99,7 +100,12 @@ public class Listener extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        xmppWorkerThread.execute(MainInterface.connectionConfiguration);
+	    if(!xmppWorkerThread.getStatus().equals(AsyncTask.Status.RUNNING)) {
+		    xmppWorkerThread.execute(MainInterface.connectionConfiguration);
+	    } else {
+		    disconnect();
+		    xmppWorkerThread.execute(MainInterface.connectionConfiguration);
+	    }
 
         flags = START_STICKY;
         Notification.Builder nb = new Notification.Builder(getApplicationContext());
@@ -126,22 +132,4 @@ public class Listener extends Service {
             }
         })).start();
     }
-
-	public static boolean verify(String user, String password) {
-		XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
-		try {
-			conn.connect();
-			conn.login(user, password);
-		} catch (XMPPException e) {
-			e.printStackTrace();
-			return false;
-		} catch (SmackException e) {
-			e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
-		return true;
-	}
 }

@@ -24,6 +24,7 @@ public class Sender extends IntentService {
 	public final static int TIMED = 1;
 
     private XMPPTCPConnection conn = null;
+	public static Roster roster = null;
 
 	private Message msg;
 
@@ -58,7 +59,8 @@ public class Sender extends IntentService {
                     conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_SENDER");
 	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.chat));
 
-	                for(RosterEntry current : conn.getRoster().getEntries()) {
+					roster = conn.getRoster();
+	                for(RosterEntry current : roster.getEntries()) {
 		                Intent i = new Intent("ROSTER");
 						if(conn.getRoster().getPresence(current.getUser()).getType() == Presence.Type.available) {
 							i.putExtra("ONLINE", current.getUser());

@@ -39,7 +39,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/username"
         android:layout_gravity="center_horizontal"
-        android:hint="Username..." />
+        android:hint="Username..."
+        android:autoLink="email"
+        android:autoText="false" />
 
     <EditText
         android:layout_width="match_parent"

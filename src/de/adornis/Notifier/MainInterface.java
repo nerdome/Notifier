@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.RosterEntry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -76,6 +77,7 @@ public class MainInterface extends Activity {
 	private Button addTargetButton;
 	private Switch receiverSwitch;
 	private EditText targetEditText;
+	private Button importRosterButton;
 	private EditText messageEditText;
 
 	@Override
@@ -88,6 +90,7 @@ public class MainInterface extends Activity {
 
 		if(prefs.getString("user", "???").equals("???")) {
 			startActivity(new Intent(this, FirstStart.class));
+			finish();
 		}
 
 		targetListView = (ListView) findViewById(R.id.targetList);
@@ -96,6 +99,7 @@ public class MainInterface extends Activity {
 		addTargetButton = (Button) findViewById(R.id.addTarget);
 		receiverSwitch = (Switch) findViewById(R.id.receiver);
 		targetEditText = (EditText) findViewById(R.id.targetText);
+		importRosterButton = (Button) findViewById(R.id.importRoster);
 		messageEditText = (EditText) findViewById(R.id.message);
 
 		targetListView.setBackgroundColor(Color.rgb(100, 100, 180));
@@ -144,11 +148,23 @@ public class MainInterface extends Activity {
         addTargetButton.setOnClickListener(new View.OnClickListener() {
 	        @Override
 	        public void onClick(View v) {
-		        targets.add(targetEditText.getText().toString());
+		        targets.add(targetEditText.getText().toString().toLowerCase());
 		        targetEditText.setText("");
 		        targetListUpdated();
 	        }
         });
+
+		importRosterButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				for(RosterEntry current : Sender.roster.getEntries()) {
+					if(!targets.contains(current.getUser().toLowerCase())) {
+						targets.add(current.getUser());
+					}
+				}
+				targetListUpdated();
+			}
+		});
 
         receiverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 	        @Override
@@ -237,8 +253,7 @@ public class MainInterface extends Activity {
 
     private ArrayList<String> getTargets() {
         Set<String> defaultTargets = new HashSet<>();
-        defaultTargets.add("yorrd@adornis.de");
-        defaultTargets.add("fightcookie@adornis.de");
+        defaultTargets.add(prefs.getString("user", "this should never happen"));
         Iterator<String> input = prefs.getStringSet("accounts", defaultTargets).iterator();
         ArrayList<String> output = new ArrayList<>();
         while(input.hasNext()) {
