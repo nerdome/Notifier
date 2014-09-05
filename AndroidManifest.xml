@@ -27,6 +27,7 @@
         </activity>
         <activity android:name=".NoiseMakerActivity" />
         <activity android:name=".PreferenceEditor"/>
+        <activity android:name=".FirstStart" />
         <service android:name=".Listener" />
         <service android:name=".Sender" />
         <receiver android:name="de.adornis.Notifier.StartupReceiver">

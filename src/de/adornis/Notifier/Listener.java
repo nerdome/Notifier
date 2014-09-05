@@ -8,6 +8,7 @@ import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.text.Editable;
 import android.util.Log;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
@@ -125,4 +126,22 @@ public class Listener extends Service {
             }
         })).start();
     }
+
+	public static boolean verify(String user, String password) {
+		XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
+		try {
+			conn.connect();
+			conn.login(user, password);
+		} catch (XMPPException e) {
+			e.printStackTrace();
+			return false;
+		} catch (SmackException e) {
+			e.printStackTrace();
+			return false;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
 }
