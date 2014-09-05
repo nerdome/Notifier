@@ -146,9 +146,6 @@ public class MainInterface extends Activity {
 	        }
         });
 
-		if(Listener.running) {
-			receiverSwitch.setChecked(true);
-		}
         receiverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 	        @Override
 	        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -166,6 +163,9 @@ public class MainInterface extends Activity {
 		        }
 	        }
         });
+		if(Listener.running) {
+			receiverSwitch.setChecked(true);
+		}
 	}
 
 	@Override
