@@ -6,7 +6,6 @@ import android.app.IntentService;
 import android.content.*;
 import android.graphics.Color;
 import android.os.*;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,16 +15,11 @@ import android.widget.*;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.RosterEntry;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 public class MainInterface extends Activity {
 
-    SharedPreferences prefs;
-    private String currentTarget = "";
-    private ArrayList<String> targets;
+	private Preferences prefs;
+
+    private User currentTarget;
 
     public static ConnectionConfiguration connectionConfiguration;
     static {
@@ -48,27 +42,30 @@ public class MainInterface extends Activity {
     private BroadcastReceiver connectedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-	        receiverSwitch.setChecked(Listener.running);
+	        receiverSwitch.setChecked(Listener.isRunning());
         }
     };
 
 	private BroadcastReceiver rosterReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			String user = "";
-			boolean online = false;
+			String user;
+			boolean online;
 			if(intent.getStringExtra("ONLINE") != null) {
 				user = intent.getStringExtra("ONLINE");
 				online = true;
 			} else if(intent.getStringExtra("OFFLINE") != null) {
 				user = intent.getStringExtra("OFFLINE");
 				online = false;
+			} else {
+				return;
 			}
-			for(int i = 0; i < targets.size(); i++) {
-				if(targets.get(i).equals(user)) {
-					((ListView) findViewById(R.id.targetList)).getChildAt(i).setBackgroundColor(online ? Color.rgb(180,100,100) : Color.rgb(100,180,100));
-				}
+			try {
+				prefs.findUser(user).setOnline(online);
+			} catch (Exception e) {
+				MainInterface.log("there is no such user, I just tried to set " + user + " to online");
 			}
+			targetListUpdated();
 		}
 	};
 
@@ -83,16 +80,23 @@ public class MainInterface extends Activity {
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        targets = getTargets();
+		// initialize the pref class for the rest of the application
+		Preferences.setContext(this);
 
-		if(prefs.getString("user", "???").equals("???")) {
-			startActivity(new Intent(this, FirstStart.class));
+		try {
+			prefs = new Preferences();
+			if(prefs.getAppUser() == null) {
+				startActivity(new Intent(this, FirstStart.class));
+				finish();
+			}
+		} catch (Exception e) {
+			// might as well stop, application basically doesn't work anymore
 			finish();
 		}
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main_activity);
 
 		targetListView = (ListView) findViewById(R.id.targetList);
 		notifyButton = (Button) findViewById(R.id.notify);
@@ -104,20 +108,20 @@ public class MainInterface extends Activity {
 		messageEditText = (EditText) findViewById(R.id.message);
 
 		targetListView.setBackgroundColor(Color.rgb(100, 100, 180));
-        targetListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, targets));
+        targetListView.setAdapter(new TargetListAdapter(this));
         targetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		        currentTarget = targets.get(position);
+		        currentTarget = (User) targetListView.getAdapter().getItem(position);
 		        notifyButton.setEnabled(true);
 	        }
         });
         targetListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 	        @Override
-	        public boolean onItemLongClick(AdapterView<?> parent, final View view, int position, long id) {
+	        public boolean onItemLongClick(AdapterView<?> parent, final View view, final int position, long id) {
 		        AlertDialog.Builder db = new AlertDialog.Builder(MainInterface.this);
 		        db.setTitle("Confirm");
-		        db.setMessage("Do you really want to remove " + ((TextView) view).getText().toString() + " from your contact list?");
+		        db.setMessage("Do you really want to remove " + prefs.getUsers().get(position).getJID() + " from your contact list?");
 		        db.setNegativeButton("Don't remove", new DialogInterface.OnClickListener() {
 			        @Override
 			        public void onClick(DialogInterface dialog, int which) {
@@ -128,8 +132,11 @@ public class MainInterface extends Activity {
 			        @Override
 			        public void onClick(DialogInterface dialog, int which) {
 
-				        String toRemove = ((TextView) view).getText().toString();
-				        targets.remove(toRemove);
+				        try {
+					        prefs.delUser(prefs.getUsers().get(position).getJID());
+				        } catch (Exception e) {
+					        // no such user should never happen since it has been added and was checked
+				        }
 
 				        unbindService(senderServiceConnection);
 				        stopService(new Intent(MainInterface.this, Sender.class));
@@ -152,7 +159,7 @@ public class MainInterface extends Activity {
 	        @Override
 	        public void onClick(View v) {
 		        Intent i = new Intent(MainInterface.this, Sender.class);
-		        i.putExtra("RECEIVER", currentTarget);
+		        i.putExtra("RECEIVER", currentTarget.getJID());
 		        i.putExtra("MESSAGE", messageEditText.getText().toString());
 		        i.putExtra("TYPE", Sender.DEFAULT);
 		        startService(i);
@@ -173,10 +180,9 @@ public class MainInterface extends Activity {
 	        @Override
 	        public void onClick(View v) {
 		        String thatNewGuy = targetEditText.getText().toString().toLowerCase();
-		        if(thatNewGuy.contains("@") && thatNewGuy.contains(".")) {
-			        targets.add(thatNewGuy);
-		        } else {
-			        // this works, passing null as listener will make it do nothing on click which is exactly what we want for this OK button
+		        try {
+			        prefs.addUser(thatNewGuy.trim());
+		        } catch (Exception e) {
 			        (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain)").setPositiveButton("OK", null).create().show();
 		        }
 		        targetEditText.setText("");
@@ -188,8 +194,15 @@ public class MainInterface extends Activity {
 			@Override
 			public void onClick(View v) {
 				for(RosterEntry current : Sender.roster.getEntries()) {
-					if(!targets.contains(current.getUser().toLowerCase())) {
-						targets.add(current.getUser());
+					try {
+						prefs.findUser(current.getUser());
+					} catch (Exception e) {
+						// user wasn't found, try to add
+						try {
+							prefs.addUser(current.getUser(), current.getName());
+						} catch (Exception e1) {
+							// users in the roster can't be wrong
+						}
 					}
 				}
 				targetListUpdated();
@@ -199,21 +212,17 @@ public class MainInterface extends Activity {
         receiverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 	        @Override
 	        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		        if (isChecked && !Listener.running) {
+		        if (isChecked && !Listener.isRunning()) {
 			        startService(new Intent(MainInterface.this, Listener.class));
 			        log("starting listener");
-			        Listener.running = true;
-			        prefs.edit().putBoolean("receiver_online", true).commit();
-		        } else if (isChecked && Listener.running) {
+		        } else if (isChecked && Listener.isRunning()) {
 		        } else {
 			        stopService(new Intent(MainInterface.this, Listener.class));
 			        log("stopping listener");
-			        Listener.running = false;
-			        prefs.edit().putBoolean("receiver_online", false).commit();
 		        }
 	        }
         });
-		if(Listener.running) {
+		if(Listener.isRunning()) {
 			receiverSwitch.setChecked(true);
 		}
 	}
@@ -229,7 +238,7 @@ public class MainInterface extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
 			case R.id.settings:
-				startActivity(new Intent(this, PreferenceEditor.class));
+				startActivity(new Intent(this, Preferences.class));
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -237,25 +246,13 @@ public class MainInterface extends Activity {
 	}
 
 	private void targetListUpdated() {
-        if(targetListView.getAdapter() instanceof ArrayAdapter) {
-            ArrayAdapter adapter = (ArrayAdapter) targetListView.getAdapter();
-            adapter.notifyDataSetChanged();
-        } else {
-            MainInterface.log("Something went horribly wrong while updating the Adapter which wasn't an ArrayAdapter as expected");
-        }
-
-        Iterator<String> input = targets.iterator();
-        Set<String> output = new HashSet<>();
-        while(input.hasNext()) {
-	        output.add(input.next());
-        }
-        prefs.edit().putStringSet("accounts", output).apply();
+		((TargetListAdapter) targetListView.getAdapter()).notifyDataSetChanged();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-	    if(prefs.getBoolean("receiver_online", false) && !Listener.running) {
+	    if(!Listener.isRunning()) {
 		    startService(new Intent(this, Listener.class));
 	    }
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
@@ -267,28 +264,22 @@ public class MainInterface extends Activity {
     protected void onPause() {
         super.onPause();
         targetListUpdated();
-	    prefs.edit().putBoolean("receiver_online", Listener.running).commit();
         unbindService(senderServiceConnection);
         unregisterReceiver(connectedReceiver);
 	    unregisterReceiver(rosterReceiver);
     }
 
-    static void log(String message) {
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		prefs.close();
+	}
+
+	static void log(String message) {
         if(message == null) {
             Log.e("ADORNIS", "empty message (probably error)");
         } else {
             Log.e("ADORNIS", message);
         }
-    }
-
-    private ArrayList<String> getTargets() {
-        Set<String> defaultTargets = new HashSet<>();
-        defaultTargets.add(prefs.getString("user", "this should never happen"));
-        Iterator<String> input = prefs.getStringSet("accounts", defaultTargets).iterator();
-        ArrayList<String> output = new ArrayList<>();
-        while(input.hasNext()) {
-            output.add(input.next());
-        }
-        return output;
     }
 }

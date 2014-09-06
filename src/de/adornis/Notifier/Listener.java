@@ -22,7 +22,7 @@ import java.util.Map;
 public class Listener extends Service {
     XMPPTCPConnection conn = null;
 
-	public static boolean running  = false;
+	private static boolean running  = false;
 
     private AsyncTask<ConnectionConfiguration, String, Void> xmppWorkerThread = new AsyncTask<ConnectionConfiguration, String, Void>() {
 
@@ -33,15 +33,14 @@ public class Listener extends Service {
 	        String user = prefs.getString("user", "yorrd@adornis.de");
 	        String password = prefs.getString("password", "123vorbei");
 
-
 	        conn = new XMPPTCPConnection(params[0]);
             try {
                 conn.connect();
                 conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
-	            running = true;
 
 	            sendBroadcast(new Intent("LISTENER_CONNECTED"));
+	            setRunning(conn.isConnected());
 
                 ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
                     @Override
@@ -131,25 +130,16 @@ public class Listener extends Service {
                 } catch (SmackException.NotConnectedException e) {
                     MainInterface.log("NotConnectedException in Listener --> onCancelled()" + e.getMessage());
                 }
+	            setRunning(conn.isConnected());
             }
         })).start();
     }
 
-	public static boolean verify(String user, String password) {
-		XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
-		try {
-			conn.connect();
-			conn.login(user, password);
-		} catch (XMPPException e) {
-			e.printStackTrace();
-			return false;
-		} catch (SmackException e) {
-			e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
-		return true;
+	public static void setRunning(boolean running) {
+		Listener.running = running;
+	}
+
+	public static boolean isRunning() {
+		return Listener.running;
 	}
 }

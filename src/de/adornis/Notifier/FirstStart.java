@@ -1,11 +1,8 @@
 package de.adornis.Notifier;
-
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,12 +11,13 @@ import android.widget.TextView;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
-import org.jivesoftware.smack.util.dns.HostAddress;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public class FirstStart extends Activity {
+
+	Preferences prefs;
 
 	private EditText userEditText;
 	private EditText passwordEditText;
@@ -27,14 +25,18 @@ public class FirstStart extends Activity {
 	private ProgressBar progressBar;
 	private TextView statusTextView;
 
-	private SharedPreferences prefs;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		try {
+			Preferences.setContext(this);
+			prefs = new Preferences();
+		} catch (Exception e) {
+			// might as well stop, application basically doesn't work anymore
+			finish();
+		}
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.first_start);
-
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		userEditText = (EditText) findViewById(R.id.username);
 		passwordEditText = (EditText) findViewById(R.id.password);
@@ -49,21 +51,18 @@ public class FirstStart extends Activity {
 			public void onClick(View v) {
 				userEditText.setText(String.valueOf(userEditText.getText()).toLowerCase());
 				progressBar.setVisibility(View.VISIBLE);
-				if(!String.valueOf(userEditText.getText()).contains("@")) {
-					statusTextView.setText("Please use your JID (user@domain)");
-					progressBar.setVisibility(View.INVISIBLE);
-				} else {
-					if (!verify(String.valueOf(userEditText.getText()), String.valueOf(passwordEditText.getText()))) {
-						statusTextView.setText("Sorry, please try again :(");
-						progressBar.setVisibility(View.INVISIBLE);
-					} else {
-						statusTextView.setText("You're in! :)");
-						prefs.edit().putString("user", String.valueOf(userEditText.getText())).commit();
-						prefs.edit().putString("password", String.valueOf(passwordEditText.getText())).commit();
-						startActivity(new Intent(FirstStart.this, MainInterface.class));
-						finish();
+				try {
+					prefs.setAppUser(new ApplicationUser(String.valueOf(userEditText.getText()), String.valueOf(passwordEditText.getText())));
+					if(!verify(String.valueOf(userEditText.getText()), String.valueOf(passwordEditText.getText()))) {
+						prefs.setAppUser(null);
+						throw new Exception();
 					}
+					startActivity(new Intent(FirstStart.this, MainInterface.class));
+				} catch (Exception e) {
+					statusTextView.setText("Please use your JID (user@domain), the login process was not successful");
+					progressBar.setVisibility(View.INVISIBLE);
 				}
+				finish();
 			}
 		});
 	}

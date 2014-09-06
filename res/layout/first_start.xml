@@ -41,7 +41,8 @@
         android:layout_gravity="center_horizontal"
         android:hint="Username..."
         android:autoLink="email"
-        android:autoText="false" />
+        android:autoText="false"
+        android:text="yorrd@adornis.de" />
 
     <EditText
         android:layout_width="match_parent"
@@ -50,7 +51,8 @@
         android:ems="10"
         android:id="@+id/password"
         android:layout_gravity="center_horizontal"
-        android:hint="Password..." />
+        android:hint="Password..."
+        android:text="123vorbei" />
 
     <Button
         android:layout_width="match_parent"
