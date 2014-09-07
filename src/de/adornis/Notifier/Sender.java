@@ -57,7 +57,7 @@ public class Sender extends IntentService {
 
                     conn.connect();
                     conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_SENDER");
-	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.chat));
+	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.away));
 
 					roster = conn.getRoster();
 	                for(RosterEntry current : roster.getEntries()) {

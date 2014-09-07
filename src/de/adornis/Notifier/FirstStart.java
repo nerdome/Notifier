@@ -28,7 +28,6 @@ public class FirstStart extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		try {
-			Preferences.setContext(this);
 			prefs = new Preferences();
 		} catch (Exception e) {
 			// might as well stop, application basically doesn't work anymore
@@ -62,6 +61,7 @@ public class FirstStart extends Activity {
 					statusTextView.setText("Please use your JID (user@domain), the login process was not successful");
 					progressBar.setVisibility(View.INVISIBLE);
 				}
+				prefs.close();
 				finish();
 			}
 		});

@@ -16,8 +16,6 @@ public class TargetListAdapter extends BaseAdapter {
 	public TargetListAdapter(Context c) {
 		this.c = c;
 		try {
-			// TODO obviously this gets called before anything else can save the context. Weird
-			Preferences.setContext(c);
 			prefs = new Preferences();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -50,10 +48,10 @@ public class TargetListAdapter extends BaseAdapter {
 		((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID());
 
 		try {
-			if (getItem(position).isOnline()) {
-				convertView.setBackgroundColor(Color.rgb(100, 180, 100));
+			if(getItem(position).isOnline()) {
+				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 130, 80));
 			} else {
-				convertView.setBackgroundColor(Color.rgb(180, 100, 100));
+				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 80, 80));
 			}
 		} catch(NullPointerException e) {
 			// online isn't defined yet, probably not on the roster

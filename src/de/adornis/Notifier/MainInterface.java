@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.IntentService;
 import android.content.*;
-import android.graphics.Color;
 import android.os.*;
 import android.util.Log;
 import android.view.Menu;
@@ -82,7 +81,7 @@ public class MainInterface extends Activity {
     public void onCreate(Bundle savedInstanceState) {
 
 		// initialize the pref class for the rest of the application
-		Preferences.setContext(this);
+		Preferences.initialize(this);
 
 		try {
 			prefs = new Preferences();
@@ -107,7 +106,6 @@ public class MainInterface extends Activity {
 		importRosterButton = (Button) findViewById(R.id.importRoster);
 		messageEditText = (EditText) findViewById(R.id.message);
 
-		targetListView.setBackgroundColor(Color.rgb(100, 100, 180));
         targetListView.setAdapter(new TargetListAdapter(this));
         targetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	        @Override
@@ -263,6 +261,7 @@ public class MainInterface extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+	    prefs.close();
         targetListUpdated();
         unbindService(senderServiceConnection);
         unregisterReceiver(connectedReceiver);

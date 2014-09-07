@@ -19,10 +19,16 @@ public class Preferences extends Activity {
 	private static ArrayList<TargetUser> users = new ArrayList<>();
 
 	// must be called before making a pref object
-	public static void setContext(Context c) {
+	public static void initialize(Context c) {
 		Preferences.context = c.getApplicationContext();
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		File usersFile = new File(context.getFilesDir(), "targetUsers");
+
+		try {
+			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""));
+		} catch (Exception e) {
+			// application user has not been set up yet
+		}
 
 		try {
 			if(!usersFile.createNewFile()) {
