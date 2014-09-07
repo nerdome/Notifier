@@ -8,6 +8,7 @@ class User implements Serializable {
 	protected String username;
 	protected String domain;
 
+	// for the serializable
 	public User() throws Exception {
 		throw new Exception();
 	}

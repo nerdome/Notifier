@@ -50,11 +50,15 @@ public class TargetListAdapter extends BaseAdapter {
 		try {
 			if(getItem(position).isOnline()) {
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 130, 80));
+				convertView.setBackgroundColor(Color.rgb(70, 90, 70));
 			} else {
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 80, 80));
+				convertView.setBackgroundColor(Color.rgb(90, 70, 70));
 			}
 		} catch(NullPointerException e) {
-			// online isn't defined yet, probably not on the roster
+			// online is not set, probably not in roster
+			convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(0, 0, 0));
+			convertView.setBackgroundColor(Color.rgb(0, 0, 0));
 		}
 
 		return convertView;
