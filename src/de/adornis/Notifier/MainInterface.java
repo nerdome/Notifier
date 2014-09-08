@@ -112,7 +112,15 @@ public class MainInterface extends Activity {
         targetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		        try {
+			        if(currentTarget != null) {
+				        targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.JID).setVisibility(View.GONE);
+			        }
+		        } catch (Exception e) {
+			        e.printStackTrace();
+		        }
 		        currentTarget = (User) targetListView.getAdapter().getItem(position);
+		        view.findViewById(R.id.JID).setVisibility(View.VISIBLE);
 		        notifyButton.setEnabled(true);
 	        }
         });
@@ -218,7 +226,7 @@ public class MainInterface extends Activity {
 		        if (isChecked && !Listener.isRunning()) {
 			        startService(new Intent(MainInterface.this, Listener.class));
 			        log("starting listener");
-		        } else if(!isChecked && Listener.isRunning()) {
+		        } else if (!isChecked && Listener.isRunning()) {
 			        stopService(new Intent(MainInterface.this, Listener.class));
 			        log("stopping listener");
 		        }
