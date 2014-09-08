@@ -64,9 +64,11 @@ public class Sender extends IntentService {
 		                Intent i = new Intent("ROSTER");
 						if(conn.getRoster().getPresence(current.getUser()).getType() == Presence.Type.available) {
 							i.putExtra("ONLINE", current.getUser());
-						} else {
+						} else if(conn.getRoster().getPresence(current.getUser()).getType() == Presence.Type.unavailable) {
 							i.putExtra("OFFLINE", current.getUser());
-						}
+						} else if(conn.getRoster().getPresence(current.getUser()).getType() == Presence.Type.unsubscribed) {
+			                i.putExtra("NOT_IN_ROSTER", current.getUser());
+		                }
 		                sendBroadcast(i);
 	                }
                 } catch (SmackException e) {

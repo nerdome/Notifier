@@ -48,21 +48,23 @@ public class MainInterface extends Activity {
 	private BroadcastReceiver rosterReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			String user;
-			boolean online;
+			String user = "";
+			int online = TargetUser.NOT_IN_ROSTER;
 			if(intent.getStringExtra("ONLINE") != null) {
 				user = intent.getStringExtra("ONLINE");
-				online = true;
+				online = TargetUser.ONLINE;
 			} else if(intent.getStringExtra("OFFLINE") != null) {
 				user = intent.getStringExtra("OFFLINE");
-				online = false;
-			} else {
-				return;
+				online = TargetUser.OFFLINE;
+			} else if(intent.getStringExtra("NOT_IN_ROSTER") != null) {
+				user = intent.getStringExtra("NOT_IN_ROSTER");
+				online = TargetUser.NOT_IN_ROSTER;
 			}
-			try {
-				prefs.findUser(user).setOnline(online);
-			} catch (Exception e) {
-				MainInterface.log("there is no such user, I just tried to set " + user + " to online");
+			if(!user.equals("")) {
+				try {
+					prefs.findUser(user).setOnline(online);
+				} catch (Exception e) {
+				}
 			}
 			targetListUpdated();
 		}
@@ -203,6 +205,9 @@ public class MainInterface extends Activity {
 						}
 					}
 				}
+				unbindService(senderServiceConnection);
+				stopService(new Intent(MainInterface.this, Sender.class));
+				bindService(new Intent(MainInterface.this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
 				targetListUpdated();
 			}
 		});
@@ -213,16 +218,12 @@ public class MainInterface extends Activity {
 		        if (isChecked && !Listener.isRunning()) {
 			        startService(new Intent(MainInterface.this, Listener.class));
 			        log("starting listener");
-		        } else if (isChecked && Listener.isRunning()) {
-		        } else {
+		        } else if(!isChecked && Listener.isRunning()) {
 			        stopService(new Intent(MainInterface.this, Listener.class));
 			        log("stopping listener");
 		        }
 	        }
         });
-		if(Listener.isRunning()) {
-			receiverSwitch.setChecked(true);
-		}
 	}
 
 	@Override

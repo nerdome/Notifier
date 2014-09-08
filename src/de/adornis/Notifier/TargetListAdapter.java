@@ -45,20 +45,19 @@ public class TargetListAdapter extends BaseAdapter {
 		convertView = inflater.inflate(R.layout.target_entry, null);
 
 		((TextView) convertView.findViewById(R.id.nick)).setText(getItem(position).getNick());
-		((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID());
 
-		try {
-			if(getItem(position).isOnline()) {
-				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 130, 80));
-				convertView.setBackgroundColor(Color.rgb(70, 90, 70));
-			} else {
-				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 80, 80));
-				convertView.setBackgroundColor(Color.rgb(90, 70, 70));
-			}
-		} catch(NullPointerException e) {
-			// online is not set, probably not in roster
-			convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(0, 0, 0));
-			convertView.setBackgroundColor(Color.rgb(0, 0, 0));
+		if(getItem(position).isOnline() == TargetUser.ONLINE) {
+			convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 130, 80));
+			convertView.setBackgroundColor(Color.rgb(70, 90, 70));
+			((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : online");
+		} else if(getItem(position).isOnline() == TargetUser.OFFLINE) {
+			convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 80, 80));
+			convertView.setBackgroundColor(Color.rgb(90, 70, 70));
+			((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : offline");
+		} else if(getItem(position).isOnline() == TargetUser.NOT_IN_ROSTER) {
+			convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 80, 130));
+			convertView.setBackgroundColor(Color.rgb(70, 70, 90));
+			((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : not in roster");
 		}
 
 		return convertView;

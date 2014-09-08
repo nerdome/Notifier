@@ -5,7 +5,11 @@ import java.io.Serializable;
 class TargetUser extends User implements Serializable {
 
 	private String nick;
-	private boolean online;
+	private int online = NOT_IN_ROSTER;
+
+	public final static int ONLINE = 0;
+	public final static int OFFLINE = 1;
+	public final static int NOT_IN_ROSTER = 2;
 
 	public TargetUser(String JID, String nick) throws Exception {
 		super(JID);
@@ -20,11 +24,11 @@ class TargetUser extends User implements Serializable {
 		return nick.equals("") ? username : nick;
 	}
 
-	public boolean isOnline() {
+	public int isOnline() {
 		return online;
 	}
 
-	public void setOnline(boolean online) {
+	public void setOnline(int online) {
 		this.online = online;
 	}
 }

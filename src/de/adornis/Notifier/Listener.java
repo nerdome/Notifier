@@ -39,8 +39,8 @@ public class Listener extends Service {
                 conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
-	            sendBroadcast(new Intent("LISTENER_CONNECTED"));
 	            setRunning(conn.isConnected());
+	            sendBroadcast(new Intent("LISTENER_CONNECTED"));
 
                 ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
                     @Override
