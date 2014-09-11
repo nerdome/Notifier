@@ -9,7 +9,8 @@ class TargetUser extends User implements Serializable {
 
 	public final static int ONLINE = 0;
 	public final static int OFFLINE = 1;
-	public final static int NOT_IN_ROSTER = 2;
+	public final static int HALF_ONLINE = 2;
+	public final static int NOT_IN_ROSTER = 3;
 
 	public TargetUser(String JID, String nick) throws Exception {
 		super(JID);

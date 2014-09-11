@@ -31,7 +31,6 @@ public class FirstStart extends Activity {
 			prefs = new Preferences();
 		} catch (Exception e) {
 			// might as well stop, application basically doesn't work anymore
-			finish();
 		}
 
 		super.onCreate(savedInstanceState);

@@ -20,6 +20,8 @@ public class MainInterface extends Activity {
 
     private User currentTarget;
 
+	public final static String ROSTER = "de.adornis.Notifier.ROSTER";
+
     public static ConnectionConfiguration connectionConfiguration;
     static {
         connectionConfiguration = new ConnectionConfiguration("adornis.de", 5222);
@@ -48,18 +50,9 @@ public class MainInterface extends Activity {
 	private BroadcastReceiver rosterReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			String user = "";
-			int online = TargetUser.NOT_IN_ROSTER;
-			if(intent.getStringExtra("ONLINE") != null) {
-				user = intent.getStringExtra("ONLINE");
-				online = TargetUser.ONLINE;
-			} else if(intent.getStringExtra("OFFLINE") != null) {
-				user = intent.getStringExtra("OFFLINE");
-				online = TargetUser.OFFLINE;
-			} else if(intent.getStringExtra("NOT_IN_ROSTER") != null) {
-				user = intent.getStringExtra("NOT_IN_ROSTER");
-				online = TargetUser.NOT_IN_ROSTER;
-			}
+			String user = intent.getStringExtra("user");
+			int online = intent.getIntExtra("status", TargetUser.NOT_IN_ROSTER);
+
 			if(!user.equals("")) {
 				try {
 					prefs.findUser(user).setOnline(online);
@@ -201,15 +194,17 @@ public class MainInterface extends Activity {
 		importRosterButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				for(RosterEntry current : Sender.roster.getEntries()) {
-					try {
-						prefs.findUser(current.getUser());
-					} catch (Exception e) {
-						// user wasn't found, try to add
+				if(Sender.roster != null) {
+					for (RosterEntry current : Sender.roster.getEntries()) {
 						try {
-							prefs.addUser(current.getUser(), current.getName());
-						} catch (Exception e1) {
-							// users in the roster can't be wrong
+							prefs.findUser(current.getUser());
+						} catch (Exception e) {
+							// user wasn't found, try to add
+							try {
+								prefs.addUser(current.getUser(), current.getName());
+							} catch (Exception e1) {
+								// users in the roster can't be wrong
+							}
 						}
 					}
 				}
@@ -264,7 +259,7 @@ public class MainInterface extends Activity {
 	    }
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
         registerReceiver(connectedReceiver, new IntentFilter("LISTENER_CONNECTED"));
-	    registerReceiver(rosterReceiver, new IntentFilter("ROSTER"));
+	    registerReceiver(rosterReceiver, new IntentFilter(ROSTER));
     }
 
     @Override

@@ -7,16 +7,16 @@ import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import org.jivesoftware.smack.Roster;
-import org.jivesoftware.smack.RosterEntry;
-import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.*;
+import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 
 import java.io.IOException;
+import java.util.Collection;
 
 public class Sender extends IntentService {
 
@@ -59,18 +59,43 @@ public class Sender extends IntentService {
                     conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_SENDER");
 	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.away));
 
-					roster = conn.getRoster();
-	                for(RosterEntry current : roster.getEntries()) {
-		                Intent i = new Intent("ROSTER");
-						if(conn.getRoster().getPresence(current.getUser()).getType() == Presence.Type.available) {
-							i.putExtra("ONLINE", current.getUser());
-						} else if(conn.getRoster().getPresence(current.getUser()).getType() == Presence.Type.unavailable) {
-							i.putExtra("OFFLINE", current.getUser());
-						} else if(conn.getRoster().getPresence(current.getUser()).getType() == Presence.Type.unsubscribed) {
-			                i.putExtra("NOT_IN_ROSTER", current.getUser());
+	                roster = conn.getRoster();
+	                conn.getRoster().addRosterListener(new RosterListener() {
+		                @Override
+		                public void entriesAdded(Collection<String> addresses) {
+
 		                }
-		                sendBroadcast(i);
-	                }
+
+		                @Override
+		                public void entriesUpdated(Collection<String> addresses) {
+
+		                }
+
+		                @Override
+		                public void entriesDeleted(Collection<String> addresses) {
+
+		                }
+
+		                @Override
+		                public void presenceChanged(Presence presence) {
+			                Intent i = new Intent(MainInterface.ROSTER);
+			                String user = presence.getFrom().substring(0, presence.getFrom().indexOf("/"));
+			                MainInterface.log(user);
+							if(presence.getType() == Presence.Type.available) {
+								if(presence.getFrom().endsWith("NOTIFIER_RECEIVER")) {
+									i.putExtra("user", user);
+									i.putExtra("status", TargetUser.ONLINE);
+								} else {
+									i.putExtra("user", user);
+									i.putExtra("status", TargetUser.HALF_ONLINE);
+								}
+							} else if(presence.getType() == Presence.Type.unavailable) {
+								i.putExtra("user", user);
+								i.putExtra("status", TargetUser.OFFLINE);
+							}
+			                sendBroadcast(i);
+		                }
+	                });
                 } catch (SmackException e) {
                     MainInterface.log("SmackException in Sender --> connect() " + e.getMessage());
                 } catch (IOException e) {

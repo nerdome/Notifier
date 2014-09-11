@@ -50,6 +50,10 @@ public class TargetListAdapter extends BaseAdapter {
 			convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 130, 80));
 			convertView.setBackgroundColor(Color.rgb(70, 90, 70));
 			((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : online");
+		} else if(getItem(position).isOnline() == TargetUser.HALF_ONLINE) {
+			convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(30, 70, 30));
+			convertView.setBackgroundColor(Color.rgb(20, 50, 20));
+			((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : only online on a different resource");
 		} else if(getItem(position).isOnline() == TargetUser.OFFLINE) {
 			convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 80, 80));
 			convertView.setBackgroundColor(Color.rgb(90, 70, 70));
