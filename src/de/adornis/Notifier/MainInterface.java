@@ -18,7 +18,7 @@ public class MainInterface extends Activity {
 
 	private Preferences prefs;
 
-    private User currentTarget;
+    private TargetUser currentTarget;
 
 	public final static String ROSTER = "de.adornis.Notifier.ROSTER";
 
@@ -112,7 +112,7 @@ public class MainInterface extends Activity {
 		        } catch (Exception e) {
 			        e.printStackTrace();
 		        }
-		        currentTarget = (User) targetListView.getAdapter().getItem(position);
+		        currentTarget = (TargetUser) targetListView.getAdapter().getItem(position);
 		        view.findViewById(R.id.JID).setVisibility(View.VISIBLE);
 		        notifyButton.setEnabled(true);
 	        }
@@ -159,11 +159,30 @@ public class MainInterface extends Activity {
         notifyButton.setOnClickListener(new View.OnClickListener() {
 	        @Override
 	        public void onClick(View v) {
-		        Intent i = new Intent(MainInterface.this, Sender.class);
-		        i.putExtra("RECEIVER", currentTarget.getJID());
-		        i.putExtra("MESSAGE", messageEditText.getText().toString());
-		        i.putExtra("TYPE", Sender.DEFAULT);
-		        startService(i);
+		        if(currentTarget.isOnline() == TargetUser.ONLINE) {
+			        Intent i = new Intent(MainInterface.this, Sender.class);
+			        i.putExtra("RECEIVER", currentTarget.getJID());
+			        i.putExtra("MESSAGE", messageEditText.getText().toString());
+			        i.putExtra("TYPE", Sender.DEFAULT);
+			        startService(i);
+		        } else if(currentTarget.isOnline() == TargetUser.HALF_ONLINE) {
+			        (new AlertDialog.Builder(MainInterface.this)
+					        .setTitle("Warning")
+					        .setMessage("This user is not online with notifier. Do you want to text him on a different device or application?")
+					        .setPositiveButton("Yes, please!", new DialogInterface.OnClickListener() {
+						        @Override
+						        public void onClick(DialogInterface dialog, int which) {
+							        Intent i = new Intent(MainInterface.this, Sender.class);
+							        i.putExtra("RECEIVER", currentTarget.getJID());
+							        i.putExtra("MESSAGE", messageEditText.getText().toString());
+							        i.putExtra("TYPE", Sender.DEFAULT);
+							        startService(i);
+						        }
+			                }).setNegativeButton("No, thanks!", null)
+			        ).create().show();
+		        } else {
+			        (new AlertDialog.Builder(MainInterface.this).setTitle("Error").setMessage("You can't send a message to this user at the moment, he's offline!")).create().show();
+		        }
 	        }
         });
 

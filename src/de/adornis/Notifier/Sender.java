@@ -25,6 +25,7 @@ public class Sender extends IntentService {
 
     private XMPPTCPConnection conn = null;
 	public static Roster roster = null;
+	private Preferences prefs;
 
 	private Message msg;
 
@@ -51,9 +52,8 @@ public class Sender extends IntentService {
             public void run() {
                 conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
                 try {
-	                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-	                String user = prefs.getString("user", "yorrd@adornis.de");
-	                String password = prefs.getString("password", "123vorbei");
+	                String user = prefs.getAppUser().getJID();
+	                String password = prefs.getAppUser().getPassword();
 
                     conn.connect();
                     conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_SENDER");
@@ -124,10 +124,19 @@ public class Sender extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+
+		if(prefs == null) {
+			try {
+				prefs = new Preferences();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
         String receiver = intent.getStringExtra("RECEIVER");
         msg = new Message();
         msg.setTo(receiver + "/NOTIFIER_RECEIVER");
-        msg.setBody("YOU SHOULDN'T SEE THIS :: this is an alarm notification :: NOTIFIER App for Android");
+        msg.setBody(prefs.getAppUser().getJID() + " sent you this message via Notifier: " + intent.getStringExtra("MESSAGE") + "<br>This is an alarm notification :: NOTIFIER App for Android");
         JivePropertiesManager.addProperty(msg, "ALARM", intent.getStringExtra("MESSAGE"));
 
 	    switch(intent.getIntExtra("TYPE", DEFAULT)) {
@@ -144,7 +153,6 @@ public class Sender extends IntentService {
 
 				    @Override
 				    public void onFinish() {
-					    MainInterface.log("im here");
 						sendMessage();
 				    }
 			    }.start();

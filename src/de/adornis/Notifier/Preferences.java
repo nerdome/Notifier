@@ -2,12 +2,15 @@ package de.adornis.Notifier;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 
 public class Preferences extends Activity {
 
@@ -94,6 +97,14 @@ public class Preferences extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		getFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		initialize(context);
+		stopService(new Intent(this, Listener.class));
+		startService(new Intent(this, Listener.class));
 	}
 
 	public void addUser(String user) throws Exception {
