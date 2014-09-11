@@ -35,6 +35,15 @@ public class Sender extends IntentService {
 
     @Override
     public IBinder onBind(Intent intent) {
+
+	    if(prefs == null) {
+		    try {
+			    prefs = new Preferences();
+		    } catch (Exception e) {
+			    e.printStackTrace();
+		    }
+	    }
+
         connect();
         return super.onBind(intent);
     }
@@ -124,14 +133,6 @@ public class Sender extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
-		if(prefs == null) {
-			try {
-				prefs = new Preferences();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
 
         String receiver = intent.getStringExtra("RECEIVER");
         msg = new Message();

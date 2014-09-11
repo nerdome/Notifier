@@ -54,6 +54,7 @@ public class FirstStart extends Activity {
 					String password = String.valueOf(passwordEditText.getText());
 
 					prefs.setAppUser(new ApplicationUser(user, password));
+					MainInterface.log(prefs.getAppUser().getJID());
 					if(!verify(user, password)) {
 						prefs.setAppUser(null);
 						throw new Exception();

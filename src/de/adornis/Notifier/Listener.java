@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 
 public class Listener extends Service {
-    XMPPTCPConnection conn = null;
+    private XMPPTCPConnection conn = null;
 
 	private static boolean running  = false;
 
@@ -109,7 +109,9 @@ public class Listener extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 	    try {
+		    MainInterface.log("im here");
 		    prefs = new Preferences();
+		    MainInterface.log(prefs.getAppUser().getJID());
 	    } catch (Exception e) {
 		    e.printStackTrace();
 	    }

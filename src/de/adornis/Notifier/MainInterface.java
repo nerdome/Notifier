@@ -1,15 +1,13 @@
 package de.adornis.Notifier;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.IntentService;
 import android.content.*;
 import android.os.*;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.widget.*;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.RosterEntry;
@@ -92,11 +90,16 @@ public class MainInterface extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
+		ActionBar actionBar = getActionBar();
+		actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM, ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
+		View actionBarView = LayoutInflater.from(this).inflate(R.layout.action_bar, null);
+		actionBar.setCustomView(actionBarView);
+
+		receiverSwitch = (Switch) actionBarView.findViewById(R.id.receiverSwitch);
 		targetListView = (ListView) findViewById(R.id.targetList);
 		notifyButton = (Button) findViewById(R.id.notify);
 		refreshButton = (Button) findViewById(R.id.refresh);
 		addTargetButton = (Button) findViewById(R.id.addTarget);
-		receiverSwitch = (Switch) findViewById(R.id.receiver);
 		targetEditText = (EditText) findViewById(R.id.targetText);
 		importRosterButton = (Button) findViewById(R.id.importRoster);
 		messageEditText = (EditText) findViewById(R.id.message);
@@ -178,7 +181,7 @@ public class MainInterface extends Activity {
 							        i.putExtra("TYPE", Sender.DEFAULT);
 							        startService(i);
 						        }
-			                }).setNegativeButton("No, thanks!", null)
+					        }).setNegativeButton("No, thanks!", null)
 			        ).create().show();
 		        } else {
 			        (new AlertDialog.Builder(MainInterface.this).setTitle("Error").setMessage("You can't send a message to this user at the moment, he's offline!")).create().show();
