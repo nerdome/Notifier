@@ -6,6 +6,7 @@ class ApplicationUser extends User {
 
 	public ApplicationUser(String JID, String password) throws Exception {
 		super(JID);
+		setPassword(password);
 	}
 
 	public void setPassword(String password) {

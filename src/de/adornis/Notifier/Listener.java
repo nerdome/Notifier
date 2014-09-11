@@ -24,19 +24,17 @@ public class Listener extends Service {
 
 	private static boolean running  = false;
 
+	private Preferences prefs;
+
     private AsyncTask<ConnectionConfiguration, String, Void> xmppWorkerThread = new AsyncTask<ConnectionConfiguration, String, Void>() {
 
         @Override
         protected Void doInBackground(ConnectionConfiguration... params) {
 
-	        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-	        String user = prefs.getString("user", "yorrd@adornis.de");
-	        String password = prefs.getString("password", "123vorbei");
-
 	        conn = new XMPPTCPConnection(params[0]);
             try {
                 conn.connect();
-                conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_RECEIVER");
+                conn.login(prefs.getAppUser().getJID().substring(0, prefs.getAppUser().getJID().indexOf('@')), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
 	            setRunning(conn.isConnected());
@@ -52,6 +50,8 @@ public class Listener extends Service {
                                     Map<String, Object> props = JivePropertiesManager.getProperties(message);
                                     if (props.containsKey("ALARM")) {
                                         publishProgress((String) props.get("ALARM"));
+                                    } else {
+	                                    returnMessage(message);
                                     }
 
                                     // echo for testing
@@ -92,15 +92,28 @@ public class Listener extends Service {
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
         }
+
+	    private void returnMessage(Message message) {
+		    message.setBody("This message should probably not have landed in the NOTIFIER_RECEIVER resource, am I right? " + message.getBody());
+		    message.setTo(message.getFrom());
+		    message.setFrom(prefs.getAppUser().getJID() + "/NOTIFIER_RECEIVER");
+	    }
     };
 
-    @Override
+	@Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+	    try {
+		    prefs = new Preferences();
+	    } catch (Exception e) {
+		    e.printStackTrace();
+	    }
+
 	    if(!xmppWorkerThread.getStatus().equals(AsyncTask.Status.RUNNING)) {
 		    xmppWorkerThread.execute(MainInterface.connectionConfiguration);
 	    } else {

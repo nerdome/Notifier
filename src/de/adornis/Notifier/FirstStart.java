@@ -50,8 +50,11 @@ public class FirstStart extends Activity {
 				userEditText.setText(String.valueOf(userEditText.getText()).toLowerCase());
 				progressBar.setVisibility(View.VISIBLE);
 				try {
-					prefs.setAppUser(new ApplicationUser(String.valueOf(userEditText.getText()), String.valueOf(passwordEditText.getText())));
-					if(!verify(String.valueOf(userEditText.getText()), String.valueOf(passwordEditText.getText()))) {
+					String user = String.valueOf(userEditText.getText());
+					String password = String.valueOf(passwordEditText.getText());
+
+					prefs.setAppUser(new ApplicationUser(user, password));
+					if(!verify(user, password)) {
 						prefs.setAppUser(null);
 						throw new Exception();
 					}

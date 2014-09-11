@@ -55,7 +55,7 @@ public class Preferences extends Activity {
 		}
 	}
 
-	public User getAppUser() {
+	public ApplicationUser getAppUser() {
 		return appUser;
 	}
 
