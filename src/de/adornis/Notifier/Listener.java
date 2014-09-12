@@ -1,15 +1,10 @@
 package de.adornis.Notifier;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.*;
-import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
-import android.text.Editable;
-import android.util.Log;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
@@ -109,9 +104,7 @@ public class Listener extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 	    try {
-		    MainInterface.log("im here");
 		    prefs = new Preferences();
-		    MainInterface.log(prefs.getAppUser().getJID());
 	    } catch (Exception e) {
 		    e.printStackTrace();
 	    }

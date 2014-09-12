@@ -89,7 +89,6 @@ public class Sender extends IntentService {
 		                public void presenceChanged(Presence presence) {
 			                Intent i = new Intent(MainInterface.ROSTER);
 			                String user = presence.getFrom().substring(0, presence.getFrom().indexOf("/"));
-			                MainInterface.log(user);
 							if(presence.getType() == Presence.Type.available) {
 								if(presence.getFrom().endsWith("NOTIFIER_RECEIVER")) {
 									i.putExtra("user", user);

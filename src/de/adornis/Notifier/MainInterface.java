@@ -203,10 +203,12 @@ public class MainInterface extends Activity {
 	        @Override
 	        public void onClick(View v) {
 		        String thatNewGuy = targetEditText.getText().toString().toLowerCase();
-		        try {
-			        prefs.addUser(thatNewGuy.trim());
-		        } catch (Exception e) {
-			        (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain)").setPositiveButton("OK", null).create().show();
+		        if(!thatNewGuy.equals("")) {
+			        try {
+				        prefs.addUser(thatNewGuy.trim());
+			        } catch (Exception e) {
+				        (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain)").setPositiveButton("OK", null).create().show();
+			        }
 		        }
 		        targetEditText.setText("");
 		        targetListUpdated();
@@ -237,7 +239,8 @@ public class MainInterface extends Activity {
 			}
 		});
 
-        receiverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+		receiverSwitch.setChecked(Listener.isRunning());
+		receiverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 	        @Override
 	        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 		        if (isChecked && !Listener.isRunning()) {
@@ -276,7 +279,7 @@ public class MainInterface extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-	    if(!Listener.isRunning()) {
+	    if(!Listener.isRunning() && prefs.isAutoStart()) {
 		    startService(new Intent(this, Listener.class));
 	    }
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);

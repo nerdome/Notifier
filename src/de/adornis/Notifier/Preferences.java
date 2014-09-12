@@ -128,4 +128,8 @@ public class Preferences extends Activity {
 		}
 		throw new Exception();
 	}
+
+	public boolean isAutoStart() {
+		return prefs.getBoolean("start_after_boot", false);
+	}
 }
