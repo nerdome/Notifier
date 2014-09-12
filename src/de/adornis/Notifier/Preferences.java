@@ -108,7 +108,11 @@ public class Preferences extends Activity {
 	}
 
 	public void addUser(String user) throws Exception {
-		addUser(user, user);
+		if(findUser(user) == null) {
+			addUser(user, user);
+		} else {
+			throw new Exception();
+		}
 	}
 
 	public void addUser(String user, String nick) throws Exception {

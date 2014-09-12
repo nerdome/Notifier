@@ -195,7 +195,6 @@ public class MainInterface extends Activity {
 				unbindService(senderServiceConnection);
 				stopService(new Intent(MainInterface.this, Sender.class));
 				bindService(new Intent(MainInterface.this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
-				targetListUpdated();
 			}
 		});
 
@@ -207,7 +206,7 @@ public class MainInterface extends Activity {
 			        try {
 				        prefs.addUser(thatNewGuy.trim());
 			        } catch (Exception e) {
-				        (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain)").setPositiveButton("OK", null).create().show();
+				        (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
 			        }
 		        }
 		        targetEditText.setText("");
