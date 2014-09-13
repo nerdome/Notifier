@@ -20,7 +20,8 @@ public class ResetPreference extends DialogPreference {
 			try {
 				Preferences prefs = new Preferences();
 				prefs.reset();
-			} catch (Exception e) {
+			} catch (Preferences.NotInitializedException e) {
+				MainInterface.log("FATAL");
 				e.printStackTrace();
 			}
 		}

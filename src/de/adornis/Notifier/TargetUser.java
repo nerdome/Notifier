@@ -18,7 +18,7 @@ class TargetUser extends User implements Serializable {
 
 	private ArrayList<String> resources = new ArrayList<>();
 
-	public TargetUser(String JID, String nick) throws Exception {
+	public TargetUser(String JID, String nick) throws InvalidJIDException {
 		super(JID);
 		setNick(nick);
 	}
@@ -42,8 +42,10 @@ class TargetUser extends User implements Serializable {
 
 			if (presence.isAvailable() && !resources.contains(resource)) {
 				resources.add(resource);
+				MainInterface.log(resource + " added");
 			} else if (!presence.isAvailable() && resources.contains(resource)) {
 				resources.remove(resource);
+				MainInterface.log(resource + " removed");
 			}
 
 			updateOnline();

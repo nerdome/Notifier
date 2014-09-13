@@ -29,8 +29,8 @@ public class Preferences extends Activity {
 
 		try {
 			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""));
-		} catch (Exception e) {
-			// application user has not been set up yet
+		} catch (InvalidJIDException e) {
+			e.printStackTrace();
 		}
 
 		try {
@@ -51,10 +51,9 @@ public class Preferences extends Activity {
 		}
 	}
 
-	public Preferences() throws Exception {
+	public Preferences() throws NotInitializedException {
 		if(context == null) {
-			throw new Exception();
-			// not initialized
+			throw new NotInitializedException();
 		}
 	}
 
@@ -89,7 +88,8 @@ public class Preferences extends Activity {
 	public TargetUser findUser(String JID) {
 		try {
 			return users.get(getUserId(JID));
-		} catch (Exception e) {
+		} catch (UserNotFoundException e) {
+			MainInterface.log(e.getMessage());
 			return null;
 		}
 	}
@@ -112,37 +112,37 @@ public class Preferences extends Activity {
 		startService(new Intent(this, Listener.class));
 	}
 
-	public void addUser(String user) throws Exception {
+	public void addUser(String user) throws InvalidJIDException {
 		if(findUser(user) == null) {
 			addUser(user, user);
 		} else {
-			throw new Exception();
+			throw new InvalidJIDException(user);
 		}
 		notifyChanged(PreferenceListener.USER_LIST);
 	}
 
-	public void addUser(String user, String nick) throws Exception {
+	public void addUser(String user, String nick) throws InvalidJIDException {
 		users.add(new TargetUser(user, nick));
 		notifyChanged(PreferenceListener.USER_LIST);
 	}
 
-	public void delUser(String JID) throws Exception {
+	public void delUser(String JID) throws UserNotFoundException {
 		users.remove(getUserId(JID));
 		notifyChanged(PreferenceListener.USER_LIST);
 	}
 
-	public TargetUser getUser(String JID) throws Exception {
+	public TargetUser getUser(String JID) throws UserNotFoundException {
 		return users.get(getUserId(JID));
 	}
 
-	public int getUserId(String JID) throws Exception {
+	public int getUserId(String JID) throws UserNotFoundException {
 
 		for(User current : users) {
 			if(current.getJID().equals(JID)) {
 				return users.indexOf(current);
 			}
 		}
-		throw new Exception();
+		throw new UserNotFoundException(JID);
 	}
 
 	public boolean isAutoStart() {
@@ -153,10 +153,10 @@ public class Preferences extends Activity {
 		prefs.edit().clear().commit();
 		usersFile.delete();
 		notifyChanged(PreferenceListener.STOP);
-		finish();
 
-		// don't know what else helps, this does the job though it is a little unrecommended
-		System.exit(0);
+		context.startActivity(new Intent(context, FirstStart.class));
+
+		finish();
 	}
 
 	public void registerPreferenceListener(PreferenceListener pl) {
@@ -167,5 +167,9 @@ public class Preferences extends Activity {
 		for(PreferenceListener current : PLlist) {
 			current.onPreferenceChanged(type);
 		}
+	}
+
+
+	public class NotInitializedException extends Exception {
 	}
 }

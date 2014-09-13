@@ -36,7 +36,8 @@ public class Sender extends IntentService {
 	    if(prefs == null) {
 		    try {
 			    prefs = new Preferences();
-		    } catch (Exception e) {
+		    } catch (Preferences.NotInitializedException e) {
+			    MainInterface.log("FATAL");
 			    e.printStackTrace();
 		    }
 	    }

@@ -9,21 +9,21 @@ class User implements Serializable {
 	protected String domain;
 
 	// for the serializable
-	public User() throws Exception {
-		throw new Exception();
+	public User() throws InvalidJIDException {
+		throw new InvalidJIDException("");
 	}
 
-	public User(String JID) throws Exception {
+	public User(String JID) throws InvalidJIDException {
 		setJID(JID);
 	}
 
-	public void setJID(String JID) throws Exception {
+	public void setJID(String JID) throws InvalidJIDException {
 		this.JID = JID;
 		if(JID.contains("@")) {
 			username = JID.substring(0, JID.indexOf("@"));
 			domain = JID.substring(JID.indexOf("@") + 1);
 		} else {
-			throw new Exception();
+			throw new InvalidJIDException(JID);
 		}
 	}
 

@@ -4,7 +4,7 @@ class ApplicationUser extends User {
 
 	private String password;
 
-	public ApplicationUser(String JID, String password) throws Exception {
+	public ApplicationUser(String JID, String password) throws InvalidJIDException {
 		super(JID);
 		setPassword(password);
 	}

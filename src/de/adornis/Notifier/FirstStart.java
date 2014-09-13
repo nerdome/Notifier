@@ -29,8 +29,9 @@ public class FirstStart extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		try {
 			prefs = new Preferences();
-		} catch (Exception e) {
-			// might as well stop, application basically doesn't work anymore
+		} catch (Preferences.NotInitializedException e) {
+			MainInterface.log("FATAL");
+			e.printStackTrace();
 		}
 
 		super.onCreate(savedInstanceState);
@@ -57,10 +58,10 @@ public class FirstStart extends Activity {
 					MainInterface.log(prefs.getAppUser().getJID());
 					if(!verify(user, password)) {
 						prefs.setAppUser(null);
-						throw new Exception();
+						throw new InvalidCredentialsException(user, password);
 					}
 					startActivity(new Intent(FirstStart.this, MainInterface.class));
-				} catch (Exception e) {
+				} catch (InvalidJIDException e) {
 					statusTextView.setText("Please use your JID (user@domain), the login process was not successful");
 					progressBar.setVisibility(View.INVISIBLE);
 				}

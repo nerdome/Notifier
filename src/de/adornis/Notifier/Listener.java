@@ -49,8 +49,8 @@ public class Listener extends Service {
 		            public void presenceChanged(Presence presence) {
 			            try {
 				            prefs.getUser(presence.getFrom().substring(0, presence.getFrom().indexOf("/"))).updatePresence(presence);
-			            } catch (Exception e) {
-				            // no user found, whatever.
+			            } catch (UserNotFoundException e) {
+				            MainInterface.log("User " + e.getUser() + " wasn't found");
 			            }
 		            }
 	            });
@@ -65,9 +65,8 @@ public class Listener extends Service {
 	            for(RosterEntry current : conn.getRoster().getEntries()) {
 		            try {
 			            prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresence(current.getUser()));
-		            } catch (Exception e) {
-			            e.printStackTrace();
-			            // no user, whatever
+		            } catch (UserNotFoundException e) {
+			            MainInterface.log(e.getMessage());
 		            }
 	            }
 
@@ -141,7 +140,8 @@ public class Listener extends Service {
 
 	    try {
 		    prefs = new Preferences();
-	    } catch (Exception e) {
+	    } catch (Preferences.NotInitializedException e) {
+		    MainInterface.log("FATAL");
 		    e.printStackTrace();
 	    }
 

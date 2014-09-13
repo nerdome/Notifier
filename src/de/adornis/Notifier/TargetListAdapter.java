@@ -17,7 +17,8 @@ public class TargetListAdapter extends BaseAdapter {
 		this.c = c;
 		try {
 			prefs = new Preferences();
-		} catch (Exception e) {
+		} catch (Preferences.NotInitializedException e) {
+			MainInterface.log("FATAL");
 			e.printStackTrace();
 		}
 	}

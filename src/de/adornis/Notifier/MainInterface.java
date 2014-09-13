@@ -65,12 +65,12 @@ public class MainInterface extends Activity {
 				startActivity(new Intent(this, FirstStart.class));
 				finish();
 			}
-		} catch (Exception e) {
-			// might as well stop, application basically doesn't work anymore
-			finish();
+		} catch (Preferences.NotInitializedException e) {
+			MainInterface.log("FATAL");
+			e.printStackTrace();
 		}
 
-        super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
 		ActionBar actionBar = getActionBar();
@@ -95,9 +95,10 @@ public class MainInterface extends Activity {
 			        if(currentTarget != null) {
 				        targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.JID).setVisibility(View.GONE);
 			        }
-		        } catch (Exception e) {
-			        e.printStackTrace();
+		        } catch (UserNotFoundException e) {
+			        MainInterface.log(e.getMessage());
 		        }
+
 		        currentTarget = (TargetUser) targetListView.getAdapter().getItem(position);
 		        view.findViewById(R.id.JID).setVisibility(View.VISIBLE);
 		        notifyButton.setEnabled(true);
@@ -121,8 +122,8 @@ public class MainInterface extends Activity {
 
 				        try {
 					        prefs.delUser(prefs.getUsers().get(position).getJID());
-				        } catch (Exception e) {
-					        // no such user should never happen since it has been added and was checked
+				        } catch (UserNotFoundException e) {
+					        MainInterface.log("User " + e + " wasn't found even though this should never happen while removing");
 				        }
 
 				        unbindService(senderServiceConnection);
@@ -184,12 +185,10 @@ public class MainInterface extends Activity {
 		        if(!thatNewGuy.equals("")) {
 			        try {
 				        prefs.addUser(thatNewGuy.trim());
-			        } catch (Exception e) {
-				        e.printStackTrace();
-				        (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
+			        } catch (InvalidJIDException e) {
+	                    (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
 			        }
 		        }
-		        targetEditText.setText("");
 		        targetListUpdated();
 	        }
         });
@@ -201,7 +200,7 @@ public class MainInterface extends Activity {
 					if(prefs.findUser(current.getUser()) == null) {
 						try {
 							prefs.addUser(current.getUser(), current.getName());
-						} catch (Exception e1) {
+						} catch (InvalidJIDException e) {
 							// users in the roster can't be wrong
 						}
 					}
