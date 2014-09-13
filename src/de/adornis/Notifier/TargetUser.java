@@ -42,10 +42,8 @@ class TargetUser extends User implements Serializable {
 
 			if (presence.isAvailable() && !resources.contains(resource)) {
 				resources.add(resource);
-				MainInterface.log(resource + " added");
 			} else if (!presence.isAvailable() && resources.contains(resource)) {
 				resources.remove(resource);
-				MainInterface.log(resource + " removed");
 			}
 
 			updateOnline();

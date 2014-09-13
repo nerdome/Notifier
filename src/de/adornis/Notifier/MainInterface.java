@@ -266,7 +266,7 @@ public class MainInterface extends Activity {
 		((TargetListAdapter) targetListView.getAdapter()).notifyDataSetChanged();
 		if(currentTarget != null) {
 			try {
-				targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.JID).setVisibility(View.VISIBLE);
+				targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.nick).setVisibility(View.GONE);
 			} catch (UserNotFoundException e) {
 				// won't happen
 				MainInterface.log("User " + e.getUser() + " wasn't found here which should never have happened");

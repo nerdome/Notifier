@@ -50,63 +50,61 @@ public class FirstStart extends Activity {
 			public void onClick(View v) {
 				userEditText.setText(String.valueOf(userEditText.getText()).toLowerCase());
 				progressBar.setVisibility(View.VISIBLE);
-				try {
-					String user = String.valueOf(userEditText.getText());
-					String password = String.valueOf(passwordEditText.getText());
 
-					prefs.setAppUser(new ApplicationUser(user, password));
-					MainInterface.log(prefs.getAppUser().getJID());
-					if(!verify(user, password)) {
-						prefs.setAppUser(null);
-						throw new InvalidCredentialsException(user, password);
-					}
-					startActivity(new Intent(FirstStart.this, MainInterface.class));
-				} catch (InvalidJIDException e) {
-					statusTextView.setText("Please use your JID (user@domain), the login process was not successful");
-					progressBar.setVisibility(View.INVISIBLE);
-				}
-				prefs.close();
-				finish();
+				String user = String.valueOf(userEditText.getText());
+				String password = String.valueOf(passwordEditText.getText());
+
+				Verificator ver = new Verificator();
+				ver.execute(user, password);
 			}
 		});
 	}
 
-	private boolean verify(String user, String password) {
 
-		AsyncTask<String, Void, Boolean> verification = new AsyncTask<String, Void, Boolean>() {
-			@Override
-			protected Boolean doInBackground(String... params) {
-				String user = params[0];
-				String password = params[1];
-				XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
-				try {
-					conn.connect();
-					conn.login(user.substring(0, user.indexOf("@")), password, "TESTING");
-					conn.disconnect();
-				} catch (XMPPException e) {
-					e.printStackTrace();
-					return false;
-				} catch (SmackException e) {
-					e.printStackTrace();
-					return false;
-				} catch (IOException e) {
-					e.printStackTrace();
-					return false;
-				}
-				return true;
+	public class Verificator extends AsyncTask<String, Void, Boolean> {
+
+		String user;
+		String password;
+
+		@Override
+		protected Boolean doInBackground(String... params) {
+			user = params[0];
+			password = params[1];
+			XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
+			try {
+				conn.connect();
+				conn.login(user.substring(0, user.indexOf("@")), password, "TESTING");
+				conn.disconnect();
+			} catch (XMPPException e) {
+				e.printStackTrace();
+				return false;
+			} catch (SmackException e) {
+				e.printStackTrace();
+				return false;
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
 			}
-		};
-
-		verification.execute(user, password);
-		try {
-			return verification.get();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			e.printStackTrace();
+			return true;
 		}
-		MainInterface.log("i shouldn't be here!");
 
-		return false;
+		@Override
+		protected void onPostExecute(Boolean success) {
+			super.onPostExecute(success);
+			if(success) {
+				try {
+					prefs.setAppUser(new ApplicationUser(user, password));
+				} catch (InvalidJIDException e) {
+					MainInterface.log("Invalid JID, shouldn't happen though because they have been verified");
+				}
+				prefs.close();
+				startActivity(new Intent(FirstStart.this, MainInterface.class));
+				finish();
+			} else {
+				prefs.setAppUser(null);
+				statusTextView.setText("Please use your JID (user@domain), the login process was not successful");
+				progressBar.setVisibility(View.INVISIBLE);
+			}
+		}
 	}
 }

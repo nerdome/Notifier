@@ -154,7 +154,9 @@ public class Preferences extends Activity {
 		usersFile.delete();
 		notifyChanged(PreferenceListener.STOP);
 
-		context.startActivity(new Intent(context, FirstStart.class));
+		Intent i = new Intent(context, FirstStart.class);
+		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		context.startActivity(i);
 
 		finish();
 	}
