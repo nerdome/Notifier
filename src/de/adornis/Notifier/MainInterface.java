@@ -151,7 +151,7 @@ public class MainInterface extends Activity {
 			        i.putExtra("MESSAGE", messageEditText.getText().toString());
 			        i.putExtra("TYPE", Sender.DEFAULT);
 			        startService(i);
-		        } else if(currentTarget.isOnline() == TargetUser.HALF_ONLINE) {
+		        } else {
 			        (new AlertDialog.Builder(MainInterface.this)
 					        .setTitle("Warning")
 					        .setMessage("This user is not online with notifier. Do you want to text him on a different device or application?")
@@ -166,8 +166,6 @@ public class MainInterface extends Activity {
 						        }
 					        }).setNegativeButton("No, thanks!", null)
 			        ).create().show();
-		        } else {
-			        (new AlertDialog.Builder(MainInterface.this).setTitle("Error").setMessage("You can't send a message to this user at the moment, he's offline!")).create().show();
 		        }
 	        }
         });
@@ -187,6 +185,7 @@ public class MainInterface extends Activity {
 			        try {
 				        prefs.addUser(thatNewGuy.trim());
 			        } catch (Exception e) {
+				        e.printStackTrace();
 				        (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
 			        }
 		        }
@@ -199,10 +198,7 @@ public class MainInterface extends Activity {
 			@Override
 			public void onClick(View v) {
 				for (RosterEntry current : senderService.getRoster().getEntries()) {
-					try {
-						prefs.findUser(current.getUser());
-					} catch (Exception e) {
-						// user wasn't found, try to add
+					if(prefs.findUser(current.getUser()) == null) {
 						try {
 							prefs.addUser(current.getUser(), current.getName());
 						} catch (Exception e1) {
@@ -231,14 +227,18 @@ public class MainInterface extends Activity {
 		prefs.registerPreferenceListener(new PreferenceListener() {
 			@Override
 			public void onPreferenceChanged(String type) {
-				MainInterface.log("got this: " + type);
 				switch(type) {
 					case PreferenceListener.CREDENTIALS:
 						stopService(new Intent(MainInterface.this, Listener.class));
 						startService(new Intent(MainInterface.this, Listener.class));
 						break;
 					case PreferenceListener.USER_LIST:
-						targetListUpdated();
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								targetListUpdated();
+							}
+						});
 						break;
 					case PreferenceListener.STOP:
 						shouldStop = true;

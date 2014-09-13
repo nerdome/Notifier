@@ -11,7 +11,6 @@ class ApplicationUser extends User {
 
 	public void setPassword(String password) {
 		this.password = password;
-		Preferences.notifyChanged(PreferenceListener.CREDENTIALS);
 	}
 
 	public String getPassword() {

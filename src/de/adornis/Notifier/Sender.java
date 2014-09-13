@@ -65,41 +65,6 @@ public class Sender extends IntentService {
                     conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_SENDER");
 	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.away));
 
-	                conn.getRoster().addRosterListener(new RosterListener() {
-		                @Override
-		                public void entriesAdded(Collection<String> addresses) {
-
-		                }
-
-		                @Override
-		                public void entriesUpdated(Collection<String> addresses) {
-
-		                }
-
-		                @Override
-		                public void entriesDeleted(Collection<String> addresses) {
-
-		                }
-
-		                @Override
-		                public void presenceChanged(Presence presence) {
-			                try {
-				                int online = TargetUser.NOT_CHECKED;
-				                if(presence.getType() == Presence.Type.available && presence.getFrom().endsWith("NOTIFIER_RECEIVER")) {
-					                online = TargetUser.ONLINE;
-				                } else if(presence.getType() == Presence.Type.available) {
-					                online = TargetUser.HALF_ONLINE;
-				                } else if(presence.getType() == Presence.Type.unavailable) {
-					                online = TargetUser.OFFLINE;
-				                }
-				                prefs.getUser(presence.getFrom().substring(0, presence.getFrom().indexOf("/"))).setOnline(online);
-			                } catch (Exception e) {
-				                e.printStackTrace();
-				                // no user found, whatever.
-			                }
-		                }
-	                });
-
                 } catch (SmackException e) {
                     MainInterface.log("SmackException in Sender --> connect() " + e.getMessage());
                 } catch (IOException e) {

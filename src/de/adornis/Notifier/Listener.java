@@ -12,6 +12,7 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 
 public class Listener extends Service {
@@ -28,12 +29,47 @@ public class Listener extends Service {
 
 	        conn = new XMPPTCPConnection(params[0]);
             try {
+	            conn.getRoster().addRosterListener(new RosterListener() {
+		            @Override
+		            public void entriesAdded(Collection<String> addresses) {
+
+		            }
+
+		            @Override
+		            public void entriesUpdated(Collection<String> addresses) {
+
+		            }
+
+		            @Override
+		            public void entriesDeleted(Collection<String> addresses) {
+
+		            }
+
+		            @Override
+		            public void presenceChanged(Presence presence) {
+			            try {
+				            prefs.getUser(presence.getFrom().substring(0, presence.getFrom().indexOf("/"))).updatePresence(presence);
+			            } catch (Exception e) {
+				            // no user found, whatever.
+			            }
+		            }
+	            });
+
                 conn.connect();
                 conn.login(prefs.getAppUser().getJID().substring(0, prefs.getAppUser().getJID().indexOf('@')), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
 	            setRunning(conn.isConnected());
 	            sendBroadcast(new Intent("LISTENER_CONNECTED"));
+
+	            for(RosterEntry current : conn.getRoster().getEntries()) {
+		            try {
+			            prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresence(current.getUser()));
+		            } catch (Exception e) {
+			            e.printStackTrace();
+			            // no user, whatever
+		            }
+	            }
 
                 ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
                     @Override
@@ -133,12 +169,17 @@ public class Listener extends Service {
         (new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    conn.disconnect();
-                } catch (SmackException.NotConnectedException e) {
-                    MainInterface.log("NotConnectedException in Listener --> onCancelled()" + e.getMessage());
-                }
-	            setRunning(conn.isConnected());
+	            if(conn != null) {
+		            try {
+			            conn.disconnect();
+		            } catch (SmackException.NotConnectedException e) {
+			            MainInterface.log("NotConnectedException in Listener --> onCancelled()" + e.getMessage());
+		            }
+		            setRunning(conn.isConnected());
+		            for(TargetUser current : prefs.getUsers()) {
+			            current.updatePresence(null);
+		            }
+	            }
             }
         })).start();
     }

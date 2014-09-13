@@ -86,8 +86,12 @@ public class Preferences extends Activity {
 		}
 	}
 
-	public TargetUser findUser(String JID) throws Exception {
-		return users.get(getUserId(JID));
+	public TargetUser findUser(String JID) {
+		try {
+			return users.get(getUserId(JID));
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public ArrayList<TargetUser> getUsers() {
