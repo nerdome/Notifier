@@ -180,6 +180,8 @@ public class MainInterface extends Activity {
 	                    (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
 			        }
 		        }
+		        stopService(new Intent(MainInterface.this, Listener.class));
+		        startService(new Intent(MainInterface.this, Listener.class));
 		        targetListUpdated();
 	        }
         });
