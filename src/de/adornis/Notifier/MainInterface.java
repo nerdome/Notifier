@@ -205,6 +205,8 @@ public class MainInterface extends Activity {
 						}
 					}
 				}
+				stopService(new Intent(MainInterface.this, Listener.class));
+				startService(new Intent(MainInterface.this, Listener.class));
 				targetListUpdated();
 			}
 		});

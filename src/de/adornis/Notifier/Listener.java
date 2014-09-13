@@ -160,12 +160,7 @@ public class Listener extends Service {
 		    e.printStackTrace();
 	    }
 
-	    if(!xmppWorkerThread.getStatus().equals(AsyncTask.Status.RUNNING)) {
-		    xmppWorkerThread.execute(MainInterface.connectionConfiguration);
-	    } else {
-		    disconnect();
-		    xmppWorkerThread.execute(MainInterface.connectionConfiguration);
-	    }
+	    connect();
 
         flags = START_STICKY;
         Notification.Builder nb = new Notification.Builder(getApplicationContext());
@@ -179,6 +174,15 @@ public class Listener extends Service {
         super.onDestroy();
         disconnect();
     }
+
+	private void connect() {
+		if(!xmppWorkerThread.getStatus().equals(AsyncTask.Status.RUNNING)) {
+			xmppWorkerThread.execute(MainInterface.connectionConfiguration);
+		} else {
+			disconnect();
+			xmppWorkerThread.execute(MainInterface.connectionConfiguration);
+		}
+	}
 
     private void disconnect() {
         (new Thread(new Runnable() {
