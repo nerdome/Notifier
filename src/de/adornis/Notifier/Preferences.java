@@ -5,15 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.DialogPreference;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
-import android.util.AttributeSet;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
 
 public class Preferences extends Activity {
 
@@ -25,10 +19,12 @@ public class Preferences extends Activity {
 	private static ArrayList<TargetUser> users = new ArrayList<>();
 	private static File usersFile;
 
+	private static ArrayList<PreferenceListener> PLlist = new ArrayList<>();
+
 	// must be called before making a pref object
 	public static void initialize(Context c) {
 		Preferences.context = c.getApplicationContext();
-		prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		prefs = context.getSharedPreferences("asdf", MODE_PRIVATE);
 		usersFile = new File(context.getFilesDir(), "targetUsers");
 
 		try {
@@ -68,6 +64,7 @@ public class Preferences extends Activity {
 
 	public void setAppUser(ApplicationUser usr) {
 		appUser = usr;
+		notifyChanged(PreferenceListener.CREDENTIALS);
 	}
 
 	public void close() {
@@ -117,14 +114,17 @@ public class Preferences extends Activity {
 		} else {
 			throw new Exception();
 		}
+		notifyChanged(PreferenceListener.USER_LIST);
 	}
 
 	public void addUser(String user, String nick) throws Exception {
 		users.add(new TargetUser(user, nick));
+		notifyChanged(PreferenceListener.USER_LIST);
 	}
 
 	public void delUser(String JID) throws Exception {
 		users.remove(getUserId(JID));
+		notifyChanged(PreferenceListener.USER_LIST);
 	}
 
 	public TargetUser getUser(String JID) throws Exception {
@@ -147,8 +147,20 @@ public class Preferences extends Activity {
 
 	public void reset() {
 		prefs.edit().clear().commit();
-		usersFile.delete();
-		startActivity((new Intent(Intent.ACTION_MAIN)).addCategory(Intent.CATEGORY_HOME).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+		if(!usersFile.delete()) {
+			MainInterface.log("couldn't remove file while resetting the preferences");
+		}
+		notifyChanged(PreferenceListener.STOP);
 		finish();
+	}
+
+	public void registerPreferenceListener(PreferenceListener pl) {
+		PLlist.add(pl);
+	}
+
+	public void notifyChanged(String type) {
+		for(PreferenceListener current : PLlist) {
+			current.onPreferenceChanged(type);
+		}
 	}
 }

@@ -18,7 +18,8 @@ public class ResetPreference extends DialogPreference {
 	protected void onDialogClosed(boolean positiveResult) {
 		if(positiveResult) {
 			try {
-				(new Preferences()).reset();
+				Preferences prefs = new Preferences();
+				prefs.reset();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

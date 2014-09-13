@@ -225,6 +225,24 @@ public class MainInterface extends Activity {
 		        }
 	        }
         });
+
+		prefs.registerPreferenceListener(new PreferenceListener() {
+			@Override
+			public void onPreferenceChanged(String type) {
+				switch(type) {
+					case PreferenceListener.CREDENTIALS:
+						stopService(new Intent(MainInterface.this, Listener.class));
+						startService(new Intent(MainInterface.this, Listener.class));
+						break;
+					case PreferenceListener.USER_LIST:
+						targetListUpdated();
+						break;
+					case PreferenceListener.STOP:
+						finish();
+						break;
+				}
+			}
+		});
 	}
 
 	@Override
