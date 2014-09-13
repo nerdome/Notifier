@@ -4,9 +4,9 @@ package de.adornis.Notifier;
 import java.io.Serializable;
 
 class User implements Serializable {
-	protected String JID;
-	protected String username;
-	protected String domain;
+	protected final String JID;
+	protected final String username;
+	protected final String domain;
 
 	// for the serializable
 	public User() throws InvalidJIDException {
@@ -14,10 +14,6 @@ class User implements Serializable {
 	}
 
 	public User(String JID) throws InvalidJIDException {
-		setJID(JID);
-	}
-
-	public void setJID(String JID) throws InvalidJIDException {
 		this.JID = JID;
 		if(JID.contains("@")) {
 			username = JID.substring(0, JID.indexOf("@"));

@@ -1,5 +1,6 @@
 package de.adornis.Notifier;
 
+import android.app.IntentService;
 import android.app.Notification;
 import android.app.Service;
 import android.content.*;
