@@ -19,12 +19,7 @@
                     android:id="@+id/message" android:layout_row="0" android:layout_column="0"
                     android:layout_columnSpan="1" android:layout_rowSpan="1" android:layout_gravity="fill_horizontal|bottom|center_horizontal"
                     android:layout_weight="1" android:hint="Your message..."/>
-            <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ref"
-                    android:id="@+id/refresh" android:layout_row="0" android:layout_column="1"
-                    android:layout_columnSpan="1" android:layout_rowSpan="1" />
+
             <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -46,7 +46,6 @@ public class MainInterface extends Activity {
 
 	private ListView targetListView;
 	private Button notifyButton;
-	private Button refreshButton;
 	private Button addTargetButton;
 	private Switch receiverSwitch;
 	private EditText targetEditText;
@@ -81,7 +80,6 @@ public class MainInterface extends Activity {
 		receiverSwitch = (Switch) actionBarView.findViewById(R.id.receiverSwitch);
 		targetListView = (ListView) findViewById(R.id.targetList);
 		notifyButton = (Button) findViewById(R.id.notify);
-		refreshButton = (Button) findViewById(R.id.refresh);
 		addTargetButton = (Button) findViewById(R.id.addTarget);
 		targetEditText = (EditText) findViewById(R.id.targetText);
 		importRosterButton = (Button) findViewById(R.id.importRoster);
@@ -170,13 +168,6 @@ public class MainInterface extends Activity {
 		        }
 	        }
         });
-
-		refreshButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				targetListUpdated();
-			}
-		});
 
         addTargetButton.setOnClickListener(new View.OnClickListener() {
 	        @Override
