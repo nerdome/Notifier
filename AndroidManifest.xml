@@ -30,7 +30,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".NoiseMakerActivity" />
-        <!--suppress AndroidDomInspection, doesn't need  -->
         <activity android:name=".Preferences" />
         <activity android:name=".FirstStart" />
         <service android:name=".Listener" />

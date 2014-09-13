@@ -224,7 +224,8 @@ public class MainInterface extends Activity {
 				switch(type) {
 					case PreferenceListener.CREDENTIALS:
 						stopService(new Intent(MainInterface.this, Listener.class));
-						startService(new Intent(MainInterface.this, Listener.class));
+						// TODO
+						startService(new Intent(MainInterface.this, Listener.class).putExtra("reason", "credentials updated"));
 						break;
 					case PreferenceListener.USER_LIST:
 						runOnUiThread(new Runnable() {
@@ -263,6 +264,14 @@ public class MainInterface extends Activity {
 
 	public void targetListUpdated() {
 		((TargetListAdapter) targetListView.getAdapter()).notifyDataSetChanged();
+		if(currentTarget != null) {
+			try {
+				targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.JID).setVisibility(View.VISIBLE);
+			} catch (UserNotFoundException e) {
+				// won't happen
+				MainInterface.log("User " + e.getUser() + " wasn't found here which should never have happened");
+			}
+		}
     }
 
     @Override

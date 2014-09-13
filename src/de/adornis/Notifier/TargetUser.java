@@ -63,12 +63,6 @@ class TargetUser extends User implements Serializable {
 		} else {
 			online = OFFLINE;
 		}
-
-		MainInterface.log(JID);
-		for(String current : resources) {
-			MainInterface.log("... " + current);
-		}
-		MainInterface.log("...");
 	}
 
 	public void incomingPing() {

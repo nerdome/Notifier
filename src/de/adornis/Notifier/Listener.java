@@ -155,6 +155,8 @@ public class Listener extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 	    try {
+		    // TODO
+		    MainInterface.log(intent.getStringExtra("reason"));
 		    prefs = new Preferences();
 	    } catch (Preferences.NotInitializedException e) {
 		    MainInterface.log("FATAL");

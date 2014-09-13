@@ -10,8 +10,8 @@ import android.widget.TextView;
 
 public class TargetListAdapter extends BaseAdapter {
 
-	Context c;
-	Preferences prefs;
+	private Context c;
+	private Preferences prefs;
 
 	public TargetListAdapter(Context c) {
 		this.c = c;
