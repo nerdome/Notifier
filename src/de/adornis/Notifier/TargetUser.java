@@ -70,4 +70,9 @@ class TargetUser extends User implements Serializable {
 		}
 		MainInterface.log("...");
 	}
+
+	public void incomingPing() {
+		resources.add("NOTIFIER_RECEIVER");
+		updateOnline();
+	}
 }

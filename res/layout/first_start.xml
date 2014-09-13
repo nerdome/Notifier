@@ -40,9 +40,9 @@
         android:id="@+id/username"
         android:layout_gravity="center_horizontal"
         android:hint="Username..."
-        android:autoLink="email"
         android:autoText="false"
-        android:text="yorrd@adornis.de" />
+        android:text="yorrd@adornis.de"
+        android:inputType="textEmailAddress" />
 
     <EditText
         android:layout_width="match_parent"

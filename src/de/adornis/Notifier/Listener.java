@@ -70,6 +70,13 @@ public class Listener extends Service {
 		            }
 	            }
 
+	            for(TargetUser current : prefs.getUsers()) {
+		            Message msg = new Message();
+		            msg.setTo(current.getJID() + "NOTIFIER_RECEIVER");
+		            JivePropertiesManager.addProperty(msg, "PING", "request");
+		            conn.sendPacket(msg);
+	            }
+
                 ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
                     @Override
                     public void chatCreated(Chat chat, boolean createdLocally) {
@@ -80,17 +87,25 @@ public class Listener extends Service {
                                     Map<String, Object> props = JivePropertiesManager.getProperties(message);
                                     if (props.containsKey("ALARM")) {
                                         publishProgress((String) props.get("ALARM"));
-                                    } else {
+                                    } else if(props.containsKey("PING")) {
+										if(props.get("PING").equals("request")) {
+											Message msg = new Message();
+	                                        JivePropertiesManager.addProperty(msg, "PING", "reply");
+											try {
+												chat.sendMessage(msg);
+											} catch (SmackException.NotConnectedException e) {
+												MainInterface.log("Couldn't ping back because there was a connection issue");
+												e.printStackTrace();
+											}
+										} else if(props.get("PING").equals("reply")) {
+											try {
+												prefs.getUser(message.getFrom().substring(0, message.getFrom().indexOf("/"))).incomingPing();
+											} catch (UserNotFoundException e) {
+												MainInterface.log("User " + e.getUser() + " pinged back but isn't on the list");
+											}
+										}
+	                                } else {
 	                                    returnMessage(message);
-                                    }
-
-                                    // echo for testing
-                                    Message msg = new Message();
-                                    JivePropertiesManager.addProperty(msg, "ALARM", "wake");
-                                    try {
-                                        chat.sendMessage(msg);
-                                    } catch (SmackException.NotConnectedException e) {
-                                        MainInterface.log("Wasn't connected in Listener --> ChatListener" + e.getMessage());
                                     }
                                 }
                             });
