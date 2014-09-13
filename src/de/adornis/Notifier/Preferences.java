@@ -147,11 +147,12 @@ public class Preferences extends Activity {
 
 	public void reset() {
 		prefs.edit().clear().commit();
-		if(!usersFile.delete()) {
-			MainInterface.log("couldn't remove file while resetting the preferences");
-		}
+		usersFile.delete();
 		notifyChanged(PreferenceListener.STOP);
 		finish();
+
+		// don't know what else helps, this does the job though it is a little unrecommended
+		System.exit(0);
 	}
 
 	public void registerPreferenceListener(PreferenceListener pl) {

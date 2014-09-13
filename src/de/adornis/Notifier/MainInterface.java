@@ -11,6 +11,8 @@ import org.jivesoftware.smack.RosterEntry;
 
 public class MainInterface extends Activity {
 
+	private boolean shouldStop = false;
+
 	private Preferences prefs;
 
     private TargetUser currentTarget;
@@ -229,6 +231,7 @@ public class MainInterface extends Activity {
 		prefs.registerPreferenceListener(new PreferenceListener() {
 			@Override
 			public void onPreferenceChanged(String type) {
+				MainInterface.log("got this: " + type);
 				switch(type) {
 					case PreferenceListener.CREDENTIALS:
 						stopService(new Intent(MainInterface.this, Listener.class));
@@ -238,6 +241,7 @@ public class MainInterface extends Activity {
 						targetListUpdated();
 						break;
 					case PreferenceListener.STOP:
+						shouldStop = true;
 						finish();
 						break;
 				}
@@ -270,6 +274,9 @@ public class MainInterface extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+	    if(shouldStop) {
+		    finish();
+	    }
 	    if(!Listener.isRunning() && prefs.isAutoStart()) {
 		    startService(new Intent(this, Listener.class));
 	    }
