@@ -2,15 +2,11 @@ package de.adornis.Notifier;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import org.jivesoftware.smack.*;
-import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
@@ -24,8 +20,9 @@ public class Sender extends IntentService {
 	public final static int TIMED = 1;
 
     private XMPPTCPConnection conn = null;
-	public static Roster roster = null;
 	private Preferences prefs;
+
+	private IBinder binder = new SenderServiceBinder();
 
 	private Message msg;
 
@@ -45,7 +42,7 @@ public class Sender extends IntentService {
 	    }
 
         connect();
-        return super.onBind(intent);
+        return binder;
     }
 
     @Override
@@ -68,7 +65,6 @@ public class Sender extends IntentService {
                     conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_SENDER");
 	                conn.sendPacket(new Presence(Presence.Type.available, "sending notifier notifications", 0, Presence.Mode.away));
 
-	                roster = conn.getRoster();
 	                conn.getRoster().addRosterListener(new RosterListener() {
 		                @Override
 		                public void entriesAdded(Collection<String> addresses) {
@@ -87,23 +83,23 @@ public class Sender extends IntentService {
 
 		                @Override
 		                public void presenceChanged(Presence presence) {
-			                Intent i = new Intent(MainInterface.ROSTER);
-			                String user = presence.getFrom().substring(0, presence.getFrom().indexOf("/"));
-							if(presence.getType() == Presence.Type.available) {
-								if(presence.getFrom().endsWith("NOTIFIER_RECEIVER")) {
-									i.putExtra("user", user);
-									i.putExtra("status", TargetUser.ONLINE);
-								} else {
-									i.putExtra("user", user);
-									i.putExtra("status", TargetUser.HALF_ONLINE);
-								}
-							} else if(presence.getType() == Presence.Type.unavailable) {
-								i.putExtra("user", user);
-								i.putExtra("status", TargetUser.OFFLINE);
-							}
-			                sendBroadcast(i);
+			                try {
+				                int online = TargetUser.NOT_IN_ROSTER;
+				                if(presence.getType() == Presence.Type.available && presence.getFrom().endsWith("NOTIFIER_RECEIVER")) {
+					                online = TargetUser.ONLINE;
+				                } else if(presence.getType() == Presence.Type.available) {
+					                online = TargetUser.HALF_ONLINE;
+				                } else if(presence.getType() == Presence.Type.unavailable) {
+					                online = TargetUser.OFFLINE;
+				                }
+				                prefs.getUser(presence.getFrom().substring(0, presence.getFrom().indexOf("/"))).setOnline(online);
+			                } catch (Exception e) {
+				                e.printStackTrace();
+				                // no user found, whatever.
+			                }
 		                }
 	                });
+
                 } catch (SmackException e) {
                     MainInterface.log("SmackException in Sender --> connect() " + e.getMessage());
                 } catch (IOException e) {
@@ -176,6 +172,12 @@ public class Sender extends IntentService {
 				MainInterface.log(e1.getMessage());
 				// really can't start for some reason
 			}
+		}
+	}
+
+	public class SenderServiceBinder extends Binder {
+		public Roster getRoster() {
+			return conn.getRoster();
 		}
 	}
 }

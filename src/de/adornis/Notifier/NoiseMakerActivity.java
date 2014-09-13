@@ -131,6 +131,7 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 
 	@Override
 	public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-		soundPool.play(sampleId, 1, 1, 1, dur / soundDuration - 1, 1);
+		int streamID = soundPool.play(sampleId, 1, 1, 1, dur / soundDuration - 1, 1);
+		soundPool.setVolume(streamID, 1.0F, 1.0F);
 	}
 }

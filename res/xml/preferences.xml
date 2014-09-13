@@ -24,4 +24,8 @@
                             android:summary="If you enabled receiving notifications before booting your phone, it will be reactivated if you check this"
                             android:defaultValue="true" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="App Actions">
+        <de.adornis.Notifier.ResetPreference android:title="Reset app"
+                                             android:summary="Reset all user data" />
+    </PreferenceCategory>
 </PreferenceScreen>

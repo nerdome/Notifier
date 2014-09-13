@@ -5,7 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.DialogPreference;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.util.AttributeSet;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -20,12 +23,13 @@ public class Preferences extends Activity {
 
 	private static ApplicationUser appUser;
 	private static ArrayList<TargetUser> users = new ArrayList<>();
+	private static File usersFile;
 
 	// must be called before making a pref object
 	public static void initialize(Context c) {
 		Preferences.context = c.getApplicationContext();
 		prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		File usersFile = new File(context.getFilesDir(), "targetUsers");
+		usersFile = new File(context.getFilesDir(), "targetUsers");
 
 		try {
 			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""));
@@ -123,6 +127,10 @@ public class Preferences extends Activity {
 		users.remove(getUserId(JID));
 	}
 
+	public TargetUser getUser(String JID) throws Exception {
+		return users.get(getUserId(JID));
+	}
+
 	public int getUserId(String JID) throws Exception {
 
 		for(User current : users) {
@@ -135,5 +143,12 @@ public class Preferences extends Activity {
 
 	public boolean isAutoStart() {
 		return prefs.getBoolean("start_after_boot", false);
+	}
+
+	public void reset() {
+		prefs.edit().clear().commit();
+		usersFile.delete();
+		startActivity((new Intent(Intent.ACTION_MAIN)).addCategory(Intent.CATEGORY_HOME).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+		finish();
 	}
 }

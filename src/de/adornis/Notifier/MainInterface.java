@@ -1,9 +1,6 @@
 package de.adornis.Notifier;
 
-import android.app.ActionBar;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.IntentService;
+import android.app.*;
 import android.content.*;
 import android.os.*;
 import android.util.Log;
@@ -18,7 +15,7 @@ public class MainInterface extends Activity {
 
     private TargetUser currentTarget;
 
-	public final static String ROSTER = "de.adornis.Notifier.ROSTER";
+	private Sender.SenderServiceBinder senderService;
 
     public static ConnectionConfiguration connectionConfiguration;
     static {
@@ -29,7 +26,7 @@ public class MainInterface extends Activity {
     private ServiceConnection senderServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-
+			senderService = (Sender.SenderServiceBinder) service;
         }
 
         @Override
@@ -44,22 +41,6 @@ public class MainInterface extends Activity {
 	        receiverSwitch.setChecked(Listener.isRunning());
         }
     };
-
-	private BroadcastReceiver rosterReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			String user = intent.getStringExtra("user");
-			int online = intent.getIntExtra("status", TargetUser.NOT_IN_ROSTER);
-
-			if(!user.equals("")) {
-				try {
-					prefs.findUser(user).setOnline(online);
-				} catch (Exception e) {
-				}
-			}
-			targetListUpdated();
-		}
-	};
 
 	private ListView targetListView;
 	private Button notifyButton;
@@ -192,9 +173,7 @@ public class MainInterface extends Activity {
 		refreshButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				unbindService(senderServiceConnection);
-				stopService(new Intent(MainInterface.this, Sender.class));
-				bindService(new Intent(MainInterface.this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
+				targetListUpdated();
 			}
 		});
 
@@ -217,23 +196,18 @@ public class MainInterface extends Activity {
 		importRosterButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if(Sender.roster != null) {
-					for (RosterEntry current : Sender.roster.getEntries()) {
+				for (RosterEntry current : senderService.getRoster().getEntries()) {
+					try {
+						prefs.findUser(current.getUser());
+					} catch (Exception e) {
+						// user wasn't found, try to add
 						try {
-							prefs.findUser(current.getUser());
-						} catch (Exception e) {
-							// user wasn't found, try to add
-							try {
-								prefs.addUser(current.getUser(), current.getName());
-							} catch (Exception e1) {
-								// users in the roster can't be wrong
-							}
+							prefs.addUser(current.getUser(), current.getName());
+						} catch (Exception e1) {
+							// users in the roster can't be wrong
 						}
 					}
 				}
-				unbindService(senderServiceConnection);
-				stopService(new Intent(MainInterface.this, Sender.class));
-				bindService(new Intent(MainInterface.this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
 				targetListUpdated();
 			}
 		});
@@ -271,7 +245,7 @@ public class MainInterface extends Activity {
 		}
 	}
 
-	private void targetListUpdated() {
+	public void targetListUpdated() {
 		((TargetListAdapter) targetListView.getAdapter()).notifyDataSetChanged();
     }
 
@@ -283,7 +257,6 @@ public class MainInterface extends Activity {
 	    }
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
         registerReceiver(connectedReceiver, new IntentFilter("LISTENER_CONNECTED"));
-	    registerReceiver(rosterReceiver, new IntentFilter(ROSTER));
     }
 
     @Override
@@ -293,7 +266,6 @@ public class MainInterface extends Activity {
         targetListUpdated();
         unbindService(senderServiceConnection);
         unregisterReceiver(connectedReceiver);
-	    unregisterReceiver(rosterReceiver);
     }
 
 	@Override
