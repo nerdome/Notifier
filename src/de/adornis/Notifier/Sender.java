@@ -84,7 +84,7 @@ public class Sender extends IntentService {
 		                @Override
 		                public void presenceChanged(Presence presence) {
 			                try {
-				                int online = TargetUser.NOT_IN_ROSTER;
+				                int online = TargetUser.NOT_CHECKED;
 				                if(presence.getType() == Presence.Type.available && presence.getFrom().endsWith("NOTIFIER_RECEIVER")) {
 					                online = TargetUser.ONLINE;
 				                } else if(presence.getType() == Presence.Type.available) {

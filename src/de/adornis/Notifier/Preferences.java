@@ -159,7 +159,7 @@ public class Preferences extends Activity {
 		PLlist.add(pl);
 	}
 
-	public void notifyChanged(String type) {
+	public static void notifyChanged(String type) {
 		for(PreferenceListener current : PLlist) {
 			current.onPreferenceChanged(type);
 		}
