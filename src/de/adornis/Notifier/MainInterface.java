@@ -224,8 +224,7 @@ public class MainInterface extends Activity {
 				switch(type) {
 					case PreferenceListener.CREDENTIALS:
 						stopService(new Intent(MainInterface.this, Listener.class));
-						// TODO
-						startService(new Intent(MainInterface.this, Listener.class).putExtra("reason", "credentials updated"));
+						startService(new Intent(MainInterface.this, Listener.class));
 						break;
 					case PreferenceListener.USER_LIST:
 						runOnUiThread(new Runnable() {

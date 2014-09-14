@@ -73,7 +73,7 @@ public class Listener extends Service {
 
 	            for(TargetUser current : prefs.getUsers()) {
 		            Message msg = new Message();
-		            msg.setTo(current.getJID() + "NOTIFIER_RECEIVER");
+		            msg.setTo(current.getJID() + "/NOTIFIER_RECEIVER");
 		            JivePropertiesManager.addProperty(msg, "PING", "request");
 		            conn.sendPacket(msg);
 	            }
@@ -91,9 +91,10 @@ public class Listener extends Service {
                                     } else if(props.containsKey("PING")) {
 										if(props.get("PING").equals("request")) {
 											Message msg = new Message();
+											msg.setTo(message.getFrom());
 	                                        JivePropertiesManager.addProperty(msg, "PING", "reply");
 											try {
-												chat.sendMessage(msg);
+												conn.sendPacket(msg);
 											} catch (SmackException.NotConnectedException e) {
 												MainInterface.log("Couldn't ping back because there was a connection issue");
 												e.printStackTrace();
@@ -155,8 +156,6 @@ public class Listener extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 	    try {
-		    // TODO
-		    MainInterface.log(intent.getStringExtra("reason"));
 		    prefs = new Preferences();
 	    } catch (Preferences.NotInitializedException e) {
 		    MainInterface.log("FATAL");

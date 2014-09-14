@@ -61,10 +61,12 @@ class TargetUser extends User implements Serializable {
 		} else {
 			online = OFFLINE;
 		}
+
 	}
 
 	public void incomingPing() {
 		resources.add("NOTIFIER_RECEIVER");
 		updateOnline();
+		Preferences.notifyChanged(PreferenceListener.USER_LIST);
 	}
 }
