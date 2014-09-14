@@ -4,8 +4,8 @@ class ApplicationUser extends User {
 
 	private final String password;
 
-	public ApplicationUser(String JID, String password) throws InvalidJIDException {
-		super(JID);
+	public ApplicationUser(String user, String password, String domain) throws InvalidJIDException {
+		super(user, domain);
 		this.password = password;
 	}
 
@@ -13,4 +13,8 @@ class ApplicationUser extends User {
 		return password;
 	}
 
+	@Deprecated
+	public String getJID() {
+		return super.getJID();
+	}
 }

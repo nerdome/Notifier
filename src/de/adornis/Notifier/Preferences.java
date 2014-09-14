@@ -28,7 +28,7 @@ public class Preferences extends Activity {
 		usersFile = new File(context.getFilesDir(), "targetUsers");
 
 		try {
-			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""));
+			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""), prefs.getString("domain", ""));
 		} catch (InvalidJIDException e) {
 			MainInterface.log("application user hasn't been set yet");
 			throw new UserNotFoundException("application user");
@@ -73,8 +73,9 @@ public class Preferences extends Activity {
 		prefs.edit().putBoolean("receiver_online", Listener.isRunning()).commit();
 
 		if(appUser != null) {
-			prefs.edit().putString("user", appUser.getJID()).commit();
+			prefs.edit().putString("user", appUser.getUsername()).commit();
 			prefs.edit().putString("password", appUser.getPassword()).commit();
+			prefs.edit().putString("domain", appUser.getDomain()).commit();
 		}
 
 		try {
@@ -108,8 +109,6 @@ public class Preferences extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		// TODO can i remove?
-//		initialize(context);
 		stopService(new Intent(this, Listener.class));
 		startService(new Intent(this, Listener.class));
 	}

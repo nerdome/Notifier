@@ -61,6 +61,7 @@ public class FirstStart extends Activity {
 					ver.execute(user, password, domain);
 				} else {
 					statusTextView.setText("You did not enter a proper JID");
+					progressBar.setVisibility(View.INVISIBLE);
 				}
 			}
 		});
@@ -81,7 +82,7 @@ public class FirstStart extends Activity {
 			XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.getConfig(domain, 5222));
 			try {
 				conn.connect();
-				conn.login(user.substring(0, user.indexOf("@")), password, "TESTING");
+				conn.login(user, password, "TESTING");
 				conn.disconnect();
 				return true;
 			} catch (XMPPException e) {
@@ -100,7 +101,7 @@ public class FirstStart extends Activity {
 		protected void onPostExecute(Boolean success) {
 			if(success) {
 				try {
-					prefs.setAppUser(new ApplicationUser(user, password));
+					prefs.setAppUser(new ApplicationUser(user, password, domain));
 				} catch (InvalidJIDException e) {
 					MainInterface.log("Invalid JID, shouldn't happen though because they have been verified");
 				}
