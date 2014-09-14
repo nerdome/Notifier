@@ -260,6 +260,12 @@ public class MainInterface extends Activity {
 			case R.id.settings:
 				startActivity(new Intent(this, Preferences.class));
 				return true;
+			case R.id.sort_alphabetically:
+				Preferences.sortUsers(Preferences.ALPHABETICALLY);
+				return true;
+			case R.id.sort_status:
+				Preferences.sortUsers(Preferences.ONLINE_STATUS);
+				return true;
 			default:
 				return super.onOptionsItemSelected(item);
 		}

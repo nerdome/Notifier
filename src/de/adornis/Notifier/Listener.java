@@ -66,7 +66,7 @@ public class Listener extends Service {
 		            try {
 			            prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresence(current.getUser()));
 		            } catch (UserNotFoundException e) {
-			            MainInterface.log(e.getMessage());
+			            // TODO get it to ask here whether to add the user to the list
 		            }
 	            }
 
