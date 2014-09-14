@@ -10,11 +10,11 @@ class TargetUser extends User implements Serializable {
 	private String nick;
 	private int online = NOT_CHECKED;
 
-	public final static int NOT_CHECKED = -1;
 	public final static int ONLINE = 0;
-	public final static int OFFLINE = 1;
-	public final static int HALF_ONLINE = 2;
+	public final static int HALF_ONLINE = 1;
+	public final static int OFFLINE = 2;
 	public final static int NOT_IN_ROSTER = 3;
+	public final static int NOT_CHECKED = 4;
 
 	private ArrayList<String> resources = new ArrayList<>();
 

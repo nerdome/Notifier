@@ -7,9 +7,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import java.io.*;
+import java.text.CollationKey;
+import java.text.Collator;
 import java.util.ArrayList;
 
 public class Preferences extends Activity {
+
+	public static final int ALPHABETICALLY = 0;
+	public static final int ONLINE_STATUS = 1;
 
 	private static Context context;
 
@@ -169,6 +174,43 @@ public class Preferences extends Activity {
 	public static void notifyChanged(String type) {
 		for(PreferenceListener current : PLlist) {
 			current.onPreferenceChanged(type);
+		}
+	}
+
+	public static void sortUsers(int mode) {
+		int i;
+		int j;
+		TargetUser newExtremum;
+		boolean reverse = !compare(users.get(0), users.get(users.size() - 1), mode, false);
+		for(i = 0; i < users.size() - 1; i++) {
+			newExtremum = null;
+			boolean keepGoing = true;
+			for(j = i + 1; j < users.size(); j++) {
+				if(compare(users.get(i), users.get(j), mode, reverse)) {
+					newExtremum = users.get(j);
+					keepGoing = false;
+				}
+				if(!keepGoing) break;
+			}
+			if(newExtremum != null) {
+				users.set(j, users.get(i));
+				users.set(i, newExtremum);
+			}
+		}
+		notifyChanged(PreferenceListener.USER_LIST);
+	}
+
+	private static boolean compare(TargetUser a, TargetUser b, int mode, boolean reverse) {
+		switch (mode) {
+			case ALPHABETICALLY:
+				Collator c = Collator.getInstance();
+				c.setStrength(Collator.PRIMARY);
+				return reverse ? (c.compare(a.getJID(), b.getJID()) > 0) : (c.compare(a.getJID(), b.getJID()) < 0);
+			case ONLINE_STATUS:
+				return reverse ? (a.isOnline() > b.isOnline()) : (a.isOnline() < b.isOnline());
+			default:
+				MainInterface.log("this shouldn't have happened while sorting");
+				return false;
 		}
 	}
 
