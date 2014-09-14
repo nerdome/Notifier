@@ -5,12 +5,12 @@
         <EditTextPreference android:key="user"
                             android:title="Username"
                             android:summary="Set the JID of your XMPP user"
-                            android:defaultValue="yorrd@adornis.de" />
+                            android:defaultValue="" />
         <EditTextPreference android:key="password"
                             android:title="Password"
                             android:summary="Set the password of your XMPP user account"
                             android:password="true"
-                            android:defaultValue="123vorbei" />
+                            android:defaultValue="" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Noise Maker Behavior">
         <EditTextPreference android:key="activity_after_wake"

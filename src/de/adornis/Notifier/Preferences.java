@@ -22,7 +22,7 @@ public class Preferences extends Activity {
 	private static ArrayList<PreferenceListener> PLlist = new ArrayList<>();
 
 	// must be called before making a pref object
-	public static void initialize(Context c) {
+	public static void initialize(Context c) throws UserNotFoundException {
 		Preferences.context = c.getApplicationContext();
 		prefs = context.getSharedPreferences("asdf", MODE_PRIVATE);
 		usersFile = new File(context.getFilesDir(), "targetUsers");
@@ -30,7 +30,8 @@ public class Preferences extends Activity {
 		try {
 			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""));
 		} catch (InvalidJIDException e) {
-			e.printStackTrace();
+			MainInterface.log("application user hasn't been set yet");
+			throw new UserNotFoundException("application user");
 		}
 
 		try {
@@ -107,14 +108,15 @@ public class Preferences extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		initialize(context);
+		// TODO can i remove?
+//		initialize(context);
 		stopService(new Intent(this, Listener.class));
 		startService(new Intent(this, Listener.class));
 	}
 
 	public void addUser(String user) throws InvalidJIDException {
 		if(findUser(user) == null) {
-			addUser(user, user);
+			addUser(user, user.substring(0, user.indexOf("@")));
 		} else {
 			throw new InvalidJIDException(user);
 		}

@@ -23,7 +23,16 @@ class User implements Serializable {
 		}
 	}
 
+	@Deprecated
 	public String getJID() {
 		return JID;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public String getDomain() {
+		return domain;
 	}
 }

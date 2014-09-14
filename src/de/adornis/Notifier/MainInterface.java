@@ -19,10 +19,11 @@ public class MainInterface extends Activity {
 
 	private Sender.SenderServiceBinder senderService;
 
-    public static ConnectionConfiguration connectionConfiguration;
-    static {
-        connectionConfiguration = new ConnectionConfiguration("adornis.de", 5222);
+    private static ConnectionConfiguration connectionConfiguration;
+    public static ConnectionConfiguration getConfig(String domain, int port) {
+        connectionConfiguration = new ConnectionConfiguration(domain, port);
         connectionConfiguration.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
+	    return connectionConfiguration;
     }
 
     private ServiceConnection senderServiceConnection = new ServiceConnection() {
@@ -54,22 +55,25 @@ public class MainInterface extends Activity {
 
 	@Override
     public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-		// initialize the pref class for the rest of the application
-		Preferences.initialize(this);
+		MainInterface.log("Starting MainInterface...");
+
+		try {
+			Preferences.initialize(this);
+		} catch (UserNotFoundException e) {
+			startActivity(new Intent(this, FirstStart.class));
+			finish();
+			return;
+		}
 
 		try {
 			prefs = new Preferences();
-			if(prefs.getAppUser() == null) {
-				startActivity(new Intent(this, FirstStart.class));
-				finish();
-			}
 		} catch (Preferences.NotInitializedException e) {
 			MainInterface.log("FATAL");
 			e.printStackTrace();
 		}
 
-		super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
 		ActionBar actionBar = getActionBar();
@@ -298,7 +302,9 @@ public class MainInterface extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		prefs.close();
+		if(prefs != null) {
+			prefs.close();
+		}
 	}
 
 	static void log(String message) {

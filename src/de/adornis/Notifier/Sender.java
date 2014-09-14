@@ -57,10 +57,12 @@ public class Sender extends IntentService {
         (new Thread(new Runnable() {
             @Override
             public void run() {
-                conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
+	            String user = prefs.getAppUser().getUsername();
+	            String domain = prefs.getAppUser().getDomain();
+	            String password = prefs.getAppUser().getPassword();
+
+                conn = new XMPPTCPConnection(MainInterface.getConfig(domain, 5222));
                 try {
-	                String user = prefs.getAppUser().getJID();
-	                String password = prefs.getAppUser().getPassword();
 
                     conn.connect();
                     conn.login(user.substring(0, user.indexOf('@')), password, "NOTIFIER_SENDER");

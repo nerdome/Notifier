@@ -13,7 +13,6 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 
 public class FirstStart extends Activity {
 
@@ -52,10 +51,17 @@ public class FirstStart extends Activity {
 				progressBar.setVisibility(View.VISIBLE);
 
 				String user = String.valueOf(userEditText.getText());
+				String domain;
 				String password = String.valueOf(passwordEditText.getText());
 
-				Verificator ver = new Verificator();
-				ver.execute(user, password);
+				if(user.contains("@") && user.contains(".")) {
+					domain = user.substring(user.indexOf("@") + 1);
+					user = user.substring(0, user.indexOf("@"));
+					Verificator ver = new Verificator();
+					ver.execute(user, password, domain);
+				} else {
+					statusTextView.setText("You did not enter a proper JID");
+				}
 			}
 		});
 	}
@@ -65,18 +71,21 @@ public class FirstStart extends Activity {
 
 		String user;
 		String password;
+		String domain;
 
 		@Override
 		protected Boolean doInBackground(String... params) {
 			user = params[0];
 			password = params[1];
-			XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.connectionConfiguration);
+			domain = params[2];
+			XMPPTCPConnection conn = new XMPPTCPConnection(MainInterface.getConfig(domain, 5222));
 			try {
 				conn.connect();
 				conn.login(user.substring(0, user.indexOf("@")), password, "TESTING");
 				conn.disconnect();
+				return true;
 			} catch (XMPPException e) {
-				e.printStackTrace();
+				MainInterface.log(e.getMessage());
 				return false;
 			} catch (SmackException e) {
 				e.printStackTrace();
@@ -85,12 +94,10 @@ public class FirstStart extends Activity {
 				e.printStackTrace();
 				return false;
 			}
-			return true;
 		}
 
 		@Override
 		protected void onPostExecute(Boolean success) {
-			super.onPostExecute(success);
 			if(success) {
 				try {
 					prefs.setAppUser(new ApplicationUser(user, password));

@@ -1,6 +1,5 @@
 package de.adornis.Notifier;
 
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.Service;
 import android.content.*;
@@ -57,7 +56,7 @@ public class Listener extends Service {
 	            });
 
                 conn.connect();
-                conn.login(prefs.getAppUser().getJID().substring(0, prefs.getAppUser().getJID().indexOf('@')), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
+                conn.login(prefs.getAppUser().getUsername(), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
 	            setRunning(conn.isConnected());
@@ -179,10 +178,10 @@ public class Listener extends Service {
 
 	private void connect() {
 		if(!xmppWorkerThread.getStatus().equals(AsyncTask.Status.RUNNING)) {
-			xmppWorkerThread.execute(MainInterface.connectionConfiguration);
+			xmppWorkerThread.execute(MainInterface.getConfig(prefs.getAppUser().getDomain(), 5222));
 		} else {
 			disconnect();
-			xmppWorkerThread.execute(MainInterface.connectionConfiguration);
+			xmppWorkerThread.execute(MainInterface.getConfig(prefs.getAppUser().getDomain(), 5222));
 		}
 	}
 
