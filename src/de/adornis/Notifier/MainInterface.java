@@ -11,17 +11,14 @@ import org.jivesoftware.smack.RosterEntry;
 
 public class MainInterface extends Activity {
 
-	private boolean shouldStop = false;
-
 	private Preferences prefs;
 
     private TargetUser currentTarget;
 
 	private Sender.SenderServiceBinder senderService;
 
-    private static ConnectionConfiguration connectionConfiguration;
-    public static ConnectionConfiguration getConfig(String domain, int port) {
-        connectionConfiguration = new ConnectionConfiguration(domain, port);
+	public static ConnectionConfiguration getConfig(String domain, int port) {
+		ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration(domain, port);
         connectionConfiguration.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
 	    return connectionConfiguration;
     }
@@ -41,7 +38,7 @@ public class MainInterface extends Activity {
     private BroadcastReceiver connectedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-	        receiverSwitch.setChecked(Listener.isRunning());
+	        receiverSwitch.setChecked(prefs.isListenerRunning());
         }
     };
 
@@ -186,7 +183,6 @@ public class MainInterface extends Activity {
 		        }
 		        stopService(new Intent(MainInterface.this, Listener.class));
 		        startService(new Intent(MainInterface.this, Listener.class));
-		        targetListUpdated();
 	        }
         });
 
@@ -204,18 +200,17 @@ public class MainInterface extends Activity {
 				}
 				stopService(new Intent(MainInterface.this, Listener.class));
 				startService(new Intent(MainInterface.this, Listener.class));
-				targetListUpdated();
 			}
 		});
 
-		receiverSwitch.setChecked(Listener.isRunning());
+		receiverSwitch.setChecked(prefs.isListenerRunning());
 		receiverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 	        @Override
 	        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		        if (isChecked && !Listener.isRunning()) {
+		        if (isChecked && !prefs.isListenerRunning()) {
 			        startService(new Intent(MainInterface.this, Listener.class));
 			        log("starting listener");
-		        } else if (!isChecked && Listener.isRunning()) {
+		        } else if (!isChecked && prefs.isListenerRunning()) {
 			        stopService(new Intent(MainInterface.this, Listener.class));
 			        log("stopping listener");
 		        }
@@ -239,7 +234,7 @@ public class MainInterface extends Activity {
 						});
 						break;
 					case PreferenceListener.STOP:
-						shouldStop = true;
+						MainInterface.log("got stop command");
 						finish();
 						break;
 				}
@@ -286,10 +281,7 @@ public class MainInterface extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-	    if(shouldStop) {
-		    finish();
-	    }
-	    if(!Listener.isRunning() && prefs.isAutoStart()) {
+	    if(!prefs.isListenerRunning() && prefs.isAutoStart()) {
 		    startService(new Intent(this, Listener.class));
 	    }
         bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
@@ -313,7 +305,7 @@ public class MainInterface extends Activity {
 		}
 	}
 
-	static void log(String message) {
+	public static void log(String message) {
         if(message == null) {
             Log.e("ADORNIS", "empty message (probably error)");
         } else {

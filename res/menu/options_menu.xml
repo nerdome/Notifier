@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/settings"
-          android:title="Settings"
-          android:showAsAction="ifRoom" />
     <group android:id="@+id/sort">
         <item android:id="@+id/sort_alphabetically"
               android:title="Sort A->Z"
@@ -12,4 +9,8 @@
               android:title="Sort by Status"
               android:showAsAction="ifRoom" />
     </group>
+    <item android:id="@+id/settings"
+        android:title="Settings"
+        android:showAsAction="ifRoom"
+        android:icon="@android:drawable/ic_menu_preferences"/>
 </menu>

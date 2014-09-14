@@ -75,8 +75,6 @@ public class Preferences extends Activity {
 	public void close() {
 		MainInterface.log("saving...");
 
-		prefs.edit().putBoolean("receiver_online", Listener.isRunning()).commit();
-
 		if(appUser != null) {
 			prefs.edit().putString("user", appUser.getUsername()).commit();
 			prefs.edit().putString("password", appUser.getPassword()).commit();
@@ -155,9 +153,24 @@ public class Preferences extends Activity {
 		return prefs.getBoolean("start_after_boot", false);
 	}
 
+	public void setListenerRunning(boolean running) {
+		prefs.edit().putBoolean("listener_running", running).commit();
+	}
+
+	public boolean isListenerRunning() {
+		return prefs.getBoolean("listener_running", false);
+	}
+
 	public void reset() {
 		prefs.edit().clear().commit();
-		usersFile.delete();
+		appUser = null;
+		users = new ArrayList<>();
+		PLlist = new ArrayList<>();
+		if(usersFile.delete()) {
+			MainInterface.log("file has been deleted successfully!");
+		} else {
+			MainInterface.log("file has NOT been deleted successfully!");
+		}
 		notifyChanged(PreferenceListener.STOP);
 
 		Intent i = new Intent(context, FirstStart.class);

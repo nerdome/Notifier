@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.Service;
 import android.content.*;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.IBinder;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
@@ -59,7 +60,7 @@ public class Listener extends Service {
                 conn.login(prefs.getAppUser().getUsername(), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
 	            conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
-	            setRunning(conn.isConnected());
+	            prefs.setListenerRunning(conn.isConnected());
 	            sendBroadcast(new Intent("LISTENER_CONNECTED"));
 
 	            for(RosterEntry current : conn.getRoster().getEntries()) {
@@ -195,7 +196,7 @@ public class Listener extends Service {
 		            } catch (SmackException.NotConnectedException e) {
 			            MainInterface.log("NotConnectedException in Listener --> onCancelled()" + e.getMessage());
 		            }
-		            setRunning(conn.isConnected());
+		            prefs.setListenerRunning(conn.isConnected());
 		            for(TargetUser current : prefs.getUsers()) {
 			            current.updatePresence(null);
 		            }
@@ -204,11 +205,10 @@ public class Listener extends Service {
         })).start();
     }
 
-	public static void setRunning(boolean running) {
-		Listener.running = running;
-	}
 
-	public static boolean isRunning() {
-		return Listener.running;
+	public class ListenerBinder extends Binder {
+		public Service getService() {
+			return Listener.this;
+		}
 	}
 }
