@@ -180,21 +180,21 @@ public class Preferences extends Activity {
 	public static void sortUsers(int mode) {
 		int i;
 		int j;
-		TargetUser newExtremum;
+		TargetUser newExtrema;
+		int newExtremaNumber = -1;
 		boolean reverse = !compare(users.get(0), users.get(users.size() - 1), mode, false);
 		for(i = 0; i < users.size() - 1; i++) {
-			newExtremum = null;
-			boolean keepGoing = true;
+			newExtrema = null;
+			newExtremaNumber = -1;
 			for(j = i + 1; j < users.size(); j++) {
 				if(compare(users.get(i), users.get(j), mode, reverse)) {
-					newExtremum = users.get(j);
-					keepGoing = false;
+					newExtrema = users.get(j);
+					newExtremaNumber = j;
 				}
-				if(!keepGoing) break;
 			}
-			if(newExtremum != null) {
-				users.set(j, users.get(i));
-				users.set(i, newExtremum);
+			if(newExtremaNumber != -1) {
+				users.set(newExtremaNumber, users.get(i));
+				users.set(i, newExtrema);
 			}
 		}
 		notifyChanged(PreferenceListener.USER_LIST);
