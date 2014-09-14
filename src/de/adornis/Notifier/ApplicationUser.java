@@ -12,9 +12,4 @@ class ApplicationUser extends User {
 	public String getPassword() {
 		return password;
 	}
-
-	@Deprecated
-	public String getJID() {
-		return super.getJID();
-	}
 }

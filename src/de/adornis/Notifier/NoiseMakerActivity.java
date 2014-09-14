@@ -9,7 +9,6 @@ import android.graphics.Color;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -17,12 +16,9 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.provider.Settings;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import java.io.IOException;
 import java.util.Random;
 
 public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadCompleteListener {
@@ -39,8 +35,10 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 
             Vibrator vib = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
             PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+	        @SuppressWarnings("deprecation")
             PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "");
             KeyguardManager km = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+	        @SuppressWarnings("deprecation")
             KeyguardManager.KeyguardLock kl = km.newKeyguardLock("ALARM_CLOCK");
 	        Camera cam = Camera.open();
 	        if(getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
