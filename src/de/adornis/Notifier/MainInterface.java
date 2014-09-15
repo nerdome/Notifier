@@ -15,30 +15,22 @@ public class MainInterface extends Activity {
 
     private TargetUser currentTarget;
 
-	private Sender.SenderServiceBinder senderService;
-
 	public static ConnectionConfiguration getConfig(String domain, int port) {
 		ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration(domain, port);
-        connectionConfiguration.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
-	    return connectionConfiguration;
-    }
+		connectionConfiguration.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
+		return connectionConfiguration;
+	}
 
-    private ServiceConnection senderServiceConnection = new ServiceConnection() {
+	private Listener listener;
+    private ServiceConnection listenerConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-			senderService = (Sender.SenderServiceBinder) service;
+			listener = ((Listener) ((Listener.ListenerBinder) service).getService());
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
 
-        }
-    };
-
-    private BroadcastReceiver connectedReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-	        receiverSwitch.setChecked(prefs.isListenerRunning());
         }
     };
 
@@ -125,10 +117,6 @@ public class MainInterface extends Activity {
 					        MainInterface.log("User " + e + " wasn't found even though this should never happen while removing");
 				        }
 
-				        unbindService(senderServiceConnection);
-				        stopService(new Intent(MainInterface.this, Sender.class));
-				        bindService(new Intent(MainInterface.this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
-
 				        targetListUpdated();
 
 				        dialog.dismiss();
@@ -145,24 +133,18 @@ public class MainInterface extends Activity {
         notifyButton.setOnClickListener(new View.OnClickListener() {
 	        @Override
 	        public void onClick(View v) {
+		        MessageConfiguration msgc = new MessageConfiguration(currentTarget.getJID(), messageEditText.getText().toString());
 		        if(currentTarget.isOnline() == TargetUser.ONLINE) {
-			        Intent i = new Intent(MainInterface.this, Sender.class);
-			        i.putExtra("RECEIVER", currentTarget.getJID());
-			        i.putExtra("MESSAGE", messageEditText.getText().toString());
-			        i.putExtra("TYPE", Sender.DEFAULT);
-			        startService(i);
+			        listener.processMessage(msgc);
 		        } else {
+			        final MessageConfiguration temp = msgc;
 			        (new AlertDialog.Builder(MainInterface.this)
 					        .setTitle("Warning")
 					        .setMessage("This user is not online with notifier. Do you want to text him on a different device or application?")
 					        .setPositiveButton("Yes, please!", new DialogInterface.OnClickListener() {
 						        @Override
 						        public void onClick(DialogInterface dialog, int which) {
-							        Intent i = new Intent(MainInterface.this, Sender.class);
-							        i.putExtra("RECEIVER", currentTarget.getJID());
-							        i.putExtra("MESSAGE", messageEditText.getText().toString());
-							        i.putExtra("TYPE", Sender.DEFAULT);
-							        startService(i);
+							        listener.processMessage(temp);
 						        }
 					        }).setNegativeButton("No, thanks!", null)
 			        ).create().show();
@@ -181,15 +163,13 @@ public class MainInterface extends Activity {
 	                    (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
 			        }
 		        }
-		        stopService(new Intent(MainInterface.this, Listener.class));
-		        startService(new Intent(MainInterface.this, Listener.class));
 	        }
         });
 
 		importRosterButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				for (RosterEntry current : senderService.getRoster().getEntries()) {
+				for (RosterEntry current : listener.getRoster().getEntries()) {
 					if(prefs.findUser(current.getUser()) == null) {
 						try {
 							prefs.addUser(current.getUser(), current.getName());
@@ -198,33 +178,29 @@ public class MainInterface extends Activity {
 						}
 					}
 				}
-				stopService(new Intent(MainInterface.this, Listener.class));
-				startService(new Intent(MainInterface.this, Listener.class));
 			}
 		});
 
-		receiverSwitch.setChecked(prefs.isListenerRunning());
-		receiverSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-	        @Override
-	        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		        if (isChecked && !prefs.isListenerRunning()) {
-			        startService(new Intent(MainInterface.this, Listener.class));
-			        log("starting listener");
-		        } else if (!isChecked && prefs.isListenerRunning()) {
-			        stopService(new Intent(MainInterface.this, Listener.class));
-			        log("stopping listener");
-		        }
-	        }
-        });
+		receiverSwitch.setChecked(prefs.isListenerRunning() == Listener.STARTED);
+		receiverSwitch.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (receiverSwitch.isChecked()) {
+					startService(new Intent(MainInterface.this, Listener.class));
+					bindService(new Intent(MainInterface.this, Listener.class), listenerConnection, BIND_AUTO_CREATE);
+					log("starting listener");
+				} else {
+					stopService(new Intent(MainInterface.this, Listener.class));
+					unbindService(listenerConnection);
+					log("stopping listener");
+				}
+			}
+		});
 
 		prefs.registerPreferenceListener(new PreferenceListener() {
 			@Override
 			public void onPreferenceChanged(String type) {
 				switch(type) {
-					case PreferenceListener.CREDENTIALS:
-						stopService(new Intent(MainInterface.this, Listener.class));
-						startService(new Intent(MainInterface.this, Listener.class));
-						break;
 					case PreferenceListener.USER_LIST:
 						runOnUiThread(new Runnable() {
 							@Override
@@ -237,7 +213,32 @@ public class MainInterface extends Activity {
 						MainInterface.log("got stop command");
 						finish();
 						break;
+					case PreferenceListener.SERVICE:
+						switch(prefs.isListenerRunning()) {
+							case Listener.STARTED:
+								setupSwitch(true, true);
+								break;
+							case Listener.STARTING:
+								setupSwitch(true, false);
+								break;
+							case Listener.STOPPED:
+								setupSwitch(false, true);
+								break;
+							case Listener.STOPPING:
+								setupSwitch(false, false);
+								break;
+						}
 				}
+			}
+
+			private void setupSwitch(final boolean check, final boolean enabled) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						receiverSwitch.setChecked(check);
+						receiverSwitch.setEnabled(enabled);
+					}
+				});
 			}
 		});
 	}
@@ -281,11 +282,11 @@ public class MainInterface extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-	    if(!prefs.isListenerRunning() && prefs.isAutoStart()) {
+	    if(prefs.isListenerRunning() == Listener.STOPPED && prefs.isAutoStart()) {
 		    startService(new Intent(this, Listener.class));
+		    bindService(new Intent(this, Listener.class), listenerConnection, BIND_AUTO_CREATE);
 	    }
-        bindService(new Intent(this, Sender.class), senderServiceConnection, IntentService.BIND_AUTO_CREATE);
-        registerReceiver(connectedReceiver, new IntentFilter("LISTENER_CONNECTED"));
+	    bindService(new Intent(this, Listener.class), listenerConnection, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -293,8 +294,7 @@ public class MainInterface extends Activity {
         super.onPause();
 	    prefs.close();
         targetListUpdated();
-        unbindService(senderServiceConnection);
-        unregisterReceiver(connectedReceiver);
+	    unbindService(listenerConnection);
     }
 
 	@Override

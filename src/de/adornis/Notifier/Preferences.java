@@ -153,12 +153,13 @@ public class Preferences extends Activity {
 		return prefs.getBoolean("start_after_boot", false);
 	}
 
-	public void setListenerRunning(boolean running) {
-		prefs.edit().putBoolean("listener_running", running).commit();
+	public void setListenerRunning(int running) {
+		prefs.edit().putInt("listener_running", running).commit();
+		notifyChanged(PreferenceListener.SERVICE);
 	}
 
-	public boolean isListenerRunning() {
-		return prefs.getBoolean("listener_running", false);
+	public int isListenerRunning() {
+		return prefs.getInt("listener_running", Listener.STOPPED);
 	}
 
 	public void reset() {

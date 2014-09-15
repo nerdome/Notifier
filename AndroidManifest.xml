@@ -33,7 +33,6 @@
         <activity android:name=".Preferences" />
         <activity android:name=".FirstStart" />
         <service android:name=".Listener" />
-        <service android:name=".Sender" />
         <receiver android:name="de.adornis.Notifier.StartupReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
