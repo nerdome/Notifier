@@ -47,7 +47,7 @@ public class TargetListAdapter extends BaseAdapter {
 
 		((TextView) convertView.findViewById(R.id.nick)).setText(getItem(position).getNick());
 
-		switch(getItem(position).isOnline()) {
+		switch(getItem(position).getOnlineStatus()) {
 			case TargetUser.NOT_CHECKED:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 80, 80));
 				convertView.setBackgroundColor(Color.rgb(70, 70, 70));

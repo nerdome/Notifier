@@ -26,11 +26,13 @@ public class MainInterface extends Activity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
 			listener = ((Listener) ((Listener.ListenerBinder) service).getService());
+	        if(prefs.isAutoStart()) {
+		        listener.attemptConnect();
+	        }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-
         }
     };
 
@@ -134,7 +136,7 @@ public class MainInterface extends Activity {
 	        @Override
 	        public void onClick(View v) {
 		        MessageConfiguration msgc = new MessageConfiguration(currentTarget.getJID(), messageEditText.getText().toString());
-		        if(currentTarget.isOnline() == TargetUser.ONLINE) {
+		        if(currentTarget.getOnlineStatus() == TargetUser.ONLINE) {
 			        listener.processMessage(msgc);
 		        } else {
 			        final MessageConfiguration temp = msgc;
@@ -159,6 +161,9 @@ public class MainInterface extends Activity {
 		        if(!thatNewGuy.equals("")) {
 			        try {
 				        prefs.addUser(thatNewGuy.trim());
+				        if(!listener.getRoster().contains(thatNewGuy)) {
+					        PreferenceListener.notifyAll(PreferenceListener.USER_PROPOSE_ROSTER, thatNewGuy);
+				        }
 			        } catch (InvalidJIDException e) {
 	                    (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
 			        }
@@ -181,53 +186,110 @@ public class MainInterface extends Activity {
 			}
 		});
 
-		receiverSwitch.setChecked(prefs.isListenerRunning() == Listener.STARTED);
+		receiverSwitch.setChecked(prefs.isConnected() == Listener.CONNECTED);
 		receiverSwitch.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (receiverSwitch.isChecked()) {
-					startService(new Intent(MainInterface.this, Listener.class));
-					bindService(new Intent(MainInterface.this, Listener.class), listenerConnection, BIND_AUTO_CREATE);
-					log("starting listener");
+					listener.attemptConnect();
 				} else {
-					stopService(new Intent(MainInterface.this, Listener.class));
-					unbindService(listenerConnection);
-					log("stopping listener");
+					listener.disconnect();
 				}
 			}
 		});
 
-		prefs.registerPreferenceListener(new PreferenceListener() {
+		PreferenceListener.registerListener(new PreferenceListener() {
+
 			@Override
-			public void onPreferenceChanged(String type) {
-				switch(type) {
-					case PreferenceListener.USER_LIST:
-						runOnUiThread(new Runnable() {
+			public void onCredentialsChanged() {
+
+			}
+
+			@Override
+			public void onUserAdd(String... JID) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						targetListUpdated();
+					}
+				});
+			}
+
+			@Override
+			public void onUserProposeList(final String JID) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						AlertDialog.Builder builder = new AlertDialog.Builder(MainInterface.this);
+						builder.setTitle(JID);
+						builder.setMessage("Do you want to add this user from your roster to your target list?");
+						builder.setNegativeButton("No", null);
+						builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 							@Override
-							public void run() {
-								targetListUpdated();
+							public void onClick(DialogInterface dialog, int which) {
+								try {
+									prefs.addUser(JID);
+								} catch (InvalidJIDException e) {
+									MainInterface.log("this should never happen, JIDs from the roster should not be wrong");
+								}
 							}
 						});
+						builder.create().show();
+					}
+				});
+			}
+
+			@Override
+			public void onUserProposeRoster(final String JID) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						AlertDialog.Builder builder = new AlertDialog.Builder(MainInterface.this);
+						builder.setTitle(JID);
+						builder.setMessage("Do you want to add this user to your roster?");
+						builder.setNegativeButton("No", null);
+						builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								listener.addToRoster(JID);
+							}
+						});
+						builder.create().show();
+					}
+				});
+			}
+
+			@Override
+			public void onUserChanged(String... JID) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						targetListUpdated();
+					}
+				});
+			}
+
+			@Override
+			public void onStopCommand() {
+				MainInterface.log("got stop command");
+				finish();
+			}
+
+			@Override
+			public void onServiceStateChanged() {
+				switch (prefs.isConnected()) {
+					case Listener.CONNECTED:
+						setupSwitch(true, true);
 						break;
-					case PreferenceListener.STOP:
-						MainInterface.log("got stop command");
-						finish();
+					case Listener.CONNECTING:
+						setupSwitch(true, false);
 						break;
-					case PreferenceListener.SERVICE:
-						switch(prefs.isListenerRunning()) {
-							case Listener.STARTED:
-								setupSwitch(true, true);
-								break;
-							case Listener.STARTING:
-								setupSwitch(true, false);
-								break;
-							case Listener.STOPPED:
-								setupSwitch(false, true);
-								break;
-							case Listener.STOPPING:
-								setupSwitch(false, false);
-								break;
-						}
+					case Listener.DISCONNECTED:
+						setupSwitch(false, true);
+						break;
+					case Listener.DISCONNECTING:
+						setupSwitch(false, false);
+						break;
 				}
 			}
 
@@ -269,22 +331,13 @@ public class MainInterface extends Activity {
 
 	public void targetListUpdated() {
 		((TargetListAdapter) targetListView.getAdapter()).notifyDataSetChanged();
-		if(currentTarget != null) {
-			try {
-				targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.nick).setVisibility(View.GONE);
-			} catch (UserNotFoundException e) {
-				// won't happen
-				MainInterface.log("User " + e.getUser() + " wasn't found here which should never have happened");
-			}
-		}
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-	    if(prefs.isListenerRunning() == Listener.STOPPED && prefs.isAutoStart()) {
+	    if(prefs.isConnected() == Listener.DISCONNECTED) {
 		    startService(new Intent(this, Listener.class));
-		    bindService(new Intent(this, Listener.class), listenerConnection, BIND_AUTO_CREATE);
 	    }
 	    bindService(new Intent(this, Listener.class), listenerConnection, BIND_AUTO_CREATE);
     }

@@ -25,14 +25,14 @@ class TargetUser extends User implements Serializable {
 
 	public void setNick(String nick) {
 		this.nick = nick;
-		Preferences.notifyChanged(PreferenceListener.USER_LIST);
+		PreferenceListener.notifyAll(PreferenceListener.USER_CHANGE, this.getJID());
 	}
 
 	public String getNick() {
 		return nick.equals("") ? username : nick;
 	}
 
-	public int isOnline() {
+	public int getOnlineStatus() {
 		return online;
 	}
 
@@ -50,7 +50,7 @@ class TargetUser extends User implements Serializable {
 		} else {
 			online = NOT_CHECKED;
 		}
-		Preferences.notifyChanged(PreferenceListener.USER_LIST);
+		PreferenceListener.notifyAll(PreferenceListener.USER_CHANGE, this.getJID());
 	}
 
 	private void updateOnline() {
@@ -67,6 +67,6 @@ class TargetUser extends User implements Serializable {
 	public void incomingPing() {
 		resources.add("NOTIFIER_RECEIVER");
 		updateOnline();
-		Preferences.notifyChanged(PreferenceListener.USER_LIST);
+		PreferenceListener.notifyAll(PreferenceListener.USER_CHANGE, this.getJID());
 	}
 }

@@ -1,13 +1,13 @@
 package de.adornis.Notifier;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.*;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.widget.Switch;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
@@ -20,10 +20,10 @@ import java.util.Map;
 
 public class Listener extends Service {
 
-	public final static int STARTED = 0;
-	public final static int STARTING = 1;
-	public final static int STOPPED = 2;
-	public final static int STOPPING = 3;
+	public final static int CONNECTED = 0;
+	public final static int CONNECTING = 1;
+	public final static int DISCONNECTED = 2;
+	public final static int DISCONNECTING = 3;
 
     private XMPPTCPConnection conn = null;
 
@@ -31,16 +31,27 @@ public class Listener extends Service {
 
 	private ListenerThread listener;
 
-	public void fetchInitialOnlineStates() {
-		for(RosterEntry current : conn.getRoster().getEntries()) {
+	private boolean contains(String[] array, String string) {
+		for(String current : array) {
+			if(current.equals(string)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void fetchInitialOnlineStates(String... JID) {
+		for (RosterEntry current : conn.getRoster().getEntries()) {
 			try {
-				prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresence(current.getUser()));
+				if(JID.length == 0 || contains(JID, current.getUser())) {
+					prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresence(current.getUser()));
+				}
 			} catch (UserNotFoundException e) {
-				// TODO get it to ask here whether to add the user to the list
+				PreferenceListener.notifyAll(PreferenceListener.USER_PROPOSE_LIST, current.getUser());
 			}
 		}
 
-		for(TargetUser current : prefs.getUsers()) {
+		for (TargetUser current : prefs.getUsers()) {
 			Message msg = new Message();
 			msg.setTo(current.getJID() + "/NOTIFIER_RECEIVER");
 			JivePropertiesManager.addProperty(msg, "PING", "request");
@@ -59,33 +70,74 @@ public class Listener extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+	    MainInterface.log("onStartCommand");
 
 	    try {
 		    prefs = new Preferences();
+		    prefs.setConnected(DISCONNECTED);
 	    } catch (Preferences.NotInitializedException e) {
 		    MainInterface.log("FATAL");
 		    e.printStackTrace();
 	    }
 
-	    prefs.setListenerRunning(STARTING);
-
 	    attemptConnect();
+
+	    PreferenceListener.registerListener(new PreferenceListener() {
+
+		    @Override
+		    public void onCredentialsChanged() {
+			    reconnect();
+		    }
+
+		    @Override
+		    public void onUserChanged(String... JID) {
+
+		    }
+
+		    @Override
+		    public void onUserAdd(String... JID) {
+			    fetchInitialOnlineStates(JID);
+		    }
+
+		    @Override
+		    public void onUserProposeList(String JID) {
+
+		    }
+
+		    @Override
+		    public void onUserProposeRoster(String JID) {
+
+		    }
+
+		    @Override
+		    public void onStopCommand() {
+
+		    }
+
+		    @Override
+		    public void onServiceStateChanged() {
+
+		    }
+	    });
 
         flags = START_STICKY;
         Notification.Builder nb = new Notification.Builder(getApplicationContext());
-        nb.setDefaults(Notification.DEFAULT_ALL);
+        nb.setDefaults(Notification.DEFAULT_VIBRATE);
+	    nb.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainInterface.class), 0));
         startForeground(1234, nb.build());
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @Override
+	@Override
     public void onDestroy() {
+		MainInterface.log("onDestroy");
         super.onDestroy();
         disconnect();
     }
 
-	private void attemptConnect() {
-		prefs.setListenerRunning(STARTING);
+	public void attemptConnect() {
+		MainInterface.log("attemptConnect");
+		prefs.setConnected(CONNECTING);
 		if(listener != null) {
 			if(listener.getStatus().equals(AsyncTask.Status.FINISHED)) {
 				listener = new ListenerThread();
@@ -99,8 +151,17 @@ public class Listener extends Service {
 		}
 	}
 
-    private void disconnect() {
-	    prefs.setListenerRunning(STOPPING);
+	public void reconnect() {
+		disconnect(true);
+	}
+
+	public void disconnect() {
+		disconnect(false);
+	}
+
+    private void disconnect(final boolean restart) {
+	    MainInterface.log("disconnect");
+	    prefs.setConnected(DISCONNECTING);
         (new Thread(new Runnable() {
             @Override
             public void run() {
@@ -114,7 +175,10 @@ public class Listener extends Service {
 			            current.updatePresence(null);
 		            }
 		            if(listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
-			            prefs.setListenerRunning(STOPPED);
+			            prefs.setConnected(DISCONNECTED);
+		            }
+		            if(restart) {
+			            attemptConnect();
 		            }
 	            }
             }
@@ -143,6 +207,19 @@ public class Listener extends Service {
 		}.start();
 	}
 
+	public void addToRoster(String JID) {
+		try {
+			conn.getRoster().createEntry(JID, JID.substring(0, JID.indexOf("@")), null);
+		} catch (SmackException.NotLoggedInException e) {
+			// whatever...
+		} catch (SmackException.NoResponseException e) {
+			// whatever...
+		} catch (XMPPException.XMPPErrorException e) {
+			// whatever...
+		} catch (SmackException.NotConnectedException e) {
+			// whatever
+		}
+	}
 
 	public class ListenerBinder extends Binder {
 		public Service getService() {
@@ -186,10 +263,11 @@ public class Listener extends Service {
 
 				conn.connect();
 				conn.login(prefs.getAppUser().getUsername(), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
+				conn.getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
 				conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
 				if(conn.isConnected()) {
-					prefs.setListenerRunning(STARTED);
+					prefs.setConnected(CONNECTED);
 				}
 
 				fetchInitialOnlineStates();

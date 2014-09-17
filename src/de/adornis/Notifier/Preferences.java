@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import java.io.*;
-import java.text.CollationKey;
 import java.text.Collator;
 import java.util.ArrayList;
 
@@ -24,12 +23,10 @@ public class Preferences extends Activity {
 	private static ArrayList<TargetUser> users = new ArrayList<>();
 	private static File usersFile;
 
-	private static ArrayList<PreferenceListener> PLlist = new ArrayList<>();
-
 	// must be called before making a pref object
 	public static void initialize(Context c) throws UserNotFoundException {
 		Preferences.context = c.getApplicationContext();
-		prefs = context.getSharedPreferences("asdf", MODE_PRIVATE);
+		prefs = context.getSharedPreferences("only_settings_i_got", MODE_PRIVATE);
 		usersFile = new File(context.getFilesDir(), "targetUsers");
 
 		try {
@@ -46,6 +43,9 @@ public class Preferences extends Activity {
 					Object in = ois.readObject();
 					users = (ArrayList<TargetUser>) in;
 					ois.close();
+					for(TargetUser user : users) {
+						user.updatePresence(null);
+					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				} catch (ClassNotFoundException e) {
@@ -69,7 +69,7 @@ public class Preferences extends Activity {
 
 	public void setAppUser(ApplicationUser usr) {
 		appUser = usr;
-		notifyChanged(PreferenceListener.CREDENTIALS);
+		PreferenceListener.notifyAll(PreferenceListener.CREDENTIALS);
 	}
 
 	public void close() {
@@ -117,22 +117,20 @@ public class Preferences extends Activity {
 	}
 
 	public void addUser(String user) throws InvalidJIDException {
-		if(findUser(user) == null) {
-			addUser(user, user.substring(0, user.indexOf("@")));
-		} else {
-			throw new InvalidJIDException(user);
-		}
-		notifyChanged(PreferenceListener.USER_LIST);
+		addUser(user, user.substring(0, user.indexOf("@")));
 	}
 
 	public void addUser(String user, String nick) throws InvalidJIDException {
-		users.add(new TargetUser(user, nick));
-		notifyChanged(PreferenceListener.USER_LIST);
+		if(findUser(user) == null) {
+			users.add(new TargetUser(user, user.substring(0, user.indexOf("@"))));
+			PreferenceListener.notifyAll(PreferenceListener.USER_ADD_OR_REMOVE, user);
+		}
 	}
 
 	public void delUser(String JID) throws UserNotFoundException {
 		users.remove(getUserId(JID));
-		notifyChanged(PreferenceListener.USER_LIST);
+		// TODO necessary?
+		PreferenceListener.notifyAll(PreferenceListener.USER_ADD_OR_REMOVE);
 	}
 
 	public TargetUser getUser(String JID) throws UserNotFoundException {
@@ -140,7 +138,6 @@ public class Preferences extends Activity {
 	}
 
 	public int getUserId(String JID) throws UserNotFoundException {
-
 		for(User current : users) {
 			if(current.getJID().equals(JID)) {
 				return users.indexOf(current);
@@ -153,42 +150,31 @@ public class Preferences extends Activity {
 		return prefs.getBoolean("start_after_boot", false);
 	}
 
-	public void setListenerRunning(int running) {
+	public void setConnected(int running) {
 		prefs.edit().putInt("listener_running", running).commit();
-		notifyChanged(PreferenceListener.SERVICE);
+		PreferenceListener.notifyAll(PreferenceListener.SERVICE);
 	}
 
-	public int isListenerRunning() {
-		return prefs.getInt("listener_running", Listener.STOPPED);
+	public int isConnected() {
+		return prefs.getInt("listener_running", Listener.DISCONNECTED);
 	}
 
 	public void reset() {
 		prefs.edit().clear().commit();
 		appUser = null;
 		users = new ArrayList<>();
-		PLlist = new ArrayList<>();
 		if(usersFile.delete()) {
 			MainInterface.log("file has been deleted successfully!");
 		} else {
 			MainInterface.log("file has NOT been deleted successfully!");
 		}
-		notifyChanged(PreferenceListener.STOP);
+		PreferenceListener.notifyAll(PreferenceListener.USER_ADD_OR_REMOVE);
 
 		Intent i = new Intent(context, FirstStart.class);
 		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		context.startActivity(i);
 
 		finish();
-	}
-
-	public void registerPreferenceListener(PreferenceListener pl) {
-		PLlist.add(pl);
-	}
-
-	public static void notifyChanged(String type) {
-		for(PreferenceListener current : PLlist) {
-			current.onPreferenceChanged(type);
-		}
 	}
 
 	public static void sortUsers(int mode) {
@@ -211,7 +197,7 @@ public class Preferences extends Activity {
 				users.set(i, newExtrema);
 			}
 		}
-		notifyChanged(PreferenceListener.USER_LIST);
+		PreferenceListener.notifyAll(PreferenceListener.USER_ADD_OR_REMOVE);
 	}
 
 	private static boolean compare(TargetUser a, TargetUser b, int mode, boolean reverse) {
@@ -221,7 +207,7 @@ public class Preferences extends Activity {
 				c.setStrength(Collator.PRIMARY);
 				return reverse ? (c.compare(a.getJID(), b.getJID()) > 0) : (c.compare(a.getJID(), b.getJID()) < 0);
 			case ONLINE_STATUS:
-				return reverse ? (a.isOnline() > b.isOnline()) : (a.isOnline() < b.isOnline());
+				return reverse ? (a.getOnlineStatus() > b.getOnlineStatus()) : (a.getOnlineStatus() < b.getOnlineStatus());
 			default:
 				MainInterface.log("this shouldn't have happened while sorting");
 				return false;
