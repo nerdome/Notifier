@@ -118,6 +118,11 @@ public class Listener extends Service {
 		    public void onServiceStateChanged() {
 
 		    }
+
+		    @Override
+		    public void onUpdateAvailable() {
+
+		    }
 	    });
 
         flags = START_STICKY;

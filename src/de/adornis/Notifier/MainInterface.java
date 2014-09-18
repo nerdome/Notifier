@@ -2,6 +2,7 @@ package de.adornis.Notifier;
 
 import android.app.*;
 import android.content.*;
+import android.content.pm.PackageManager;
 import android.os.*;
 import android.util.Log;
 import android.view.*;
@@ -9,9 +10,12 @@ import android.widget.*;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.RosterEntry;
 
+import java.io.IOException;
+
 public class MainInterface extends Activity {
 
 	private Preferences prefs;
+	private AutoUpdater updater;
 
     private TargetUser currentTarget;
 
@@ -50,6 +54,126 @@ public class MainInterface extends Activity {
 
 		MainInterface.log("Starting MainInterface...");
 
+		PreferenceListener.registerListener(new PreferenceListener() {
+
+			@Override
+			public void onCredentialsChanged() {
+
+			}
+
+			@Override
+			public void onUserAdd(String... JID) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						targetListUpdated();
+					}
+				});
+			}
+
+			@Override
+			public void onUserProposeList(final String JID) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						AlertDialog.Builder builder = new AlertDialog.Builder(MainInterface.this);
+						builder.setTitle(JID);
+						builder.setMessage("Do you want to add this user from your roster to your target list?");
+						builder.setNegativeButton("No", null);
+						builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								try {
+									prefs.addUser(JID);
+								} catch (InvalidJIDException e) {
+									MainInterface.log("this should never happen, JIDs from the roster should not be wrong");
+								}
+							}
+						});
+						builder.create().show();
+					}
+				});
+			}
+
+			@Override
+			public void onUserProposeRoster(final String JID) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						AlertDialog.Builder builder = new AlertDialog.Builder(MainInterface.this);
+						builder.setTitle(JID);
+						builder.setMessage("Do you want to add this user to your roster?");
+						builder.setNegativeButton("No", null);
+						builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								listener.addToRoster(JID);
+							}
+						});
+						builder.create().show();
+					}
+				});
+			}
+
+			@Override
+			public void onUserChanged(String... JID) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						targetListUpdated();
+					}
+				});
+			}
+
+			@Override
+			public void onStopCommand() {
+				MainInterface.log("got stop command");
+				finish();
+			}
+
+			@Override
+			public void onServiceStateChanged() {
+				switch (prefs.isConnected()) {
+					case Listener.CONNECTED:
+						setupSwitch(true, true);
+						break;
+					case Listener.CONNECTING:
+						setupSwitch(true, false);
+						break;
+					case Listener.DISCONNECTED:
+						setupSwitch(false, true);
+						break;
+					case Listener.DISCONNECTING:
+						setupSwitch(false, false);
+						break;
+				}
+			}
+
+			@Override
+			public void onUpdateAvailable() {
+				updater.update(MainInterface.this);
+			}
+
+			private void setupSwitch(final boolean check, final boolean enabled) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						receiverSwitch.setChecked(check);
+						receiverSwitch.setEnabled(enabled);
+					}
+				});
+			}
+		});
+
+		try {
+			updater = new AutoUpdater(getPackageManager().getPackageInfo(getPackageName(), 0).versionCode);
+			updater.check();
+		} catch (PackageManager.NameNotFoundException e) {
+			// lawl this doesn't exist... yes it does -.-
+		} catch (IOException e) {
+			MainInterface.log("failed to fetch version");
+		}
+
 		try {
 			Preferences.initialize(this);
 		} catch (UserNotFoundException e) {
@@ -64,6 +188,7 @@ public class MainInterface extends Activity {
 			MainInterface.log("FATAL");
 			e.printStackTrace();
 		}
+
 
         setContentView(R.layout.main_activity);
 
@@ -195,112 +320,6 @@ public class MainInterface extends Activity {
 				} else {
 					listener.disconnect();
 				}
-			}
-		});
-
-		PreferenceListener.registerListener(new PreferenceListener() {
-
-			@Override
-			public void onCredentialsChanged() {
-
-			}
-
-			@Override
-			public void onUserAdd(String... JID) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						targetListUpdated();
-					}
-				});
-			}
-
-			@Override
-			public void onUserProposeList(final String JID) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						AlertDialog.Builder builder = new AlertDialog.Builder(MainInterface.this);
-						builder.setTitle(JID);
-						builder.setMessage("Do you want to add this user from your roster to your target list?");
-						builder.setNegativeButton("No", null);
-						builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-								try {
-									prefs.addUser(JID);
-								} catch (InvalidJIDException e) {
-									MainInterface.log("this should never happen, JIDs from the roster should not be wrong");
-								}
-							}
-						});
-						builder.create().show();
-					}
-				});
-			}
-
-			@Override
-			public void onUserProposeRoster(final String JID) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						AlertDialog.Builder builder = new AlertDialog.Builder(MainInterface.this);
-						builder.setTitle(JID);
-						builder.setMessage("Do you want to add this user to your roster?");
-						builder.setNegativeButton("No", null);
-						builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-								listener.addToRoster(JID);
-							}
-						});
-						builder.create().show();
-					}
-				});
-			}
-
-			@Override
-			public void onUserChanged(String... JID) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						targetListUpdated();
-					}
-				});
-			}
-
-			@Override
-			public void onStopCommand() {
-				MainInterface.log("got stop command");
-				finish();
-			}
-
-			@Override
-			public void onServiceStateChanged() {
-				switch (prefs.isConnected()) {
-					case Listener.CONNECTED:
-						setupSwitch(true, true);
-						break;
-					case Listener.CONNECTING:
-						setupSwitch(true, false);
-						break;
-					case Listener.DISCONNECTED:
-						setupSwitch(false, true);
-						break;
-					case Listener.DISCONNECTING:
-						setupSwitch(false, false);
-						break;
-				}
-			}
-
-			private void setupSwitch(final boolean check, final boolean enabled) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						receiverSwitch.setChecked(check);
-						receiverSwitch.setEnabled(enabled);
-					}
-				});
 			}
 		});
 	}
