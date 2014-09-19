@@ -1,11 +1,13 @@
 package de.adornis.Notifier;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class TargetListAdapter extends BaseAdapter {
@@ -34,7 +36,7 @@ public class TargetListAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+	public View getView(final int position, View convertView, ViewGroup parent) {
 		// TODO use convertView! and don't pass null...
 		LayoutInflater inflater = LayoutInflater.from(c);
 
@@ -42,31 +44,43 @@ public class TargetListAdapter extends BaseAdapter {
 
 		((TextView) convertView.findViewById(R.id.nick)).setText(getItem(position).getNick());
 
+		convertView.findViewById(R.id.invite).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Notifier.getContext().sendBroadcast(new Intent(Notifier.INVITATION).putExtra("JID", getItem(position).getJID()));
+			}
+		});
+
 		switch(getItem(position).getOnlineStatus()) {
 			case TargetUser.NOT_CHECKED:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 80, 80));
 				convertView.setBackgroundColor(Color.rgb(70, 70, 70));
 				((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : no information yet");
+				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
 				break;
 			case TargetUser.ONLINE:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 130, 80));
 				convertView.setBackgroundColor(Color.rgb(70, 90, 70));
 				((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : online");
+				convertView.findViewById(R.id.invite).setVisibility(View.GONE);
 				break;
 			case TargetUser.HALF_ONLINE:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(30, 70, 30));
 				convertView.setBackgroundColor(Color.rgb(20, 50, 20));
 				((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : only online on a different resource");
+				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
 				break;
 			case TargetUser.OFFLINE:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 80, 80));
 				convertView.setBackgroundColor(Color.rgb(90, 70, 70));
 				((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : offline");
+				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
 				break;
 			case TargetUser.NOT_IN_ROSTER:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 80, 130));
 				convertView.setBackgroundColor(Color.rgb(70, 70, 90));
 				((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : not in roster");
+				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
 				break;
 		}
 

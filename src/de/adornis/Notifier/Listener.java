@@ -184,6 +184,18 @@ public class Listener extends Service {
 		}
 	}
 
+	public void invite(String JID) {
+		Message msg = new Message();
+		msg.setTo(JID);
+		msg.setBody(prefs.getAppUser().getJID() + " invites you to join the Notifier force! Go here for more information: www.example.com");
+		try {
+			conn.sendPacket(msg);
+		} catch (SmackException.NotConnectedException e) {
+			MainInterface.log("error while sending invitation in Listener");
+			e.printStackTrace();
+		}
+	}
+
 	public class ListenerBinder extends Binder {
 		public Service getService() {
 			return Listener.this;
@@ -299,8 +311,15 @@ public class Listener extends Service {
 
 		private void returnMessage(Message message) {
 			message.setBody("This message should probably not have landed in the NOTIFIER_RECEIVER resource, am I right? " + message.getBody());
+			MainInterface.log("returning message to " + message.getFrom().substring(0, message.getFrom().indexOf("/")));
 			message.setTo(message.getFrom());
 			message.setFrom(prefs.getAppUser().getJID() + "/NOTIFIER_RECEIVER");
+			try {
+				conn.sendPacket(message);
+			} catch (SmackException.NotConnectedException e) {
+				MainInterface.log("couldn't send message back in returnMessage() in Listener");
+				e.printStackTrace();
+			}
 		}
 	}
 }

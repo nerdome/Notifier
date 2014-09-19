@@ -146,6 +146,12 @@ public class MainInterface extends Activity {
 			updater.update(MainInterface.this);
 		}
 	};
+	private BroadcastReceiver invitationReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			listener.invite(intent.getStringExtra("JID"));
+		}
+	};
 
 	private void setupSwitch(final boolean check, final boolean enabled) {
 		runOnUiThread(new Runnable() {
@@ -212,6 +218,7 @@ public class MainInterface extends Activity {
 		targetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		        MainInterface.log("in onitemclicklistener");
 		        try {
 			        if(currentTarget != null) {
 				        targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.JID).setVisibility(View.GONE);
@@ -370,6 +377,7 @@ public class MainInterface extends Activity {
 	    registerReceiver(serviceStateReceiver, new IntentFilter(Notifier.SERVICE));
 	    registerReceiver(userChangeReceiver, new IntentFilter(Notifier.USER_CHANGE));
 	    registerReceiver(userEventReceiver, new IntentFilter(Notifier.USER_EVENT));
+	    registerReceiver(invitationReceiver, new IntentFilter(Notifier.INVITATION));
 
 	    if(prefs.isConnected() == Listener.DISCONNECTED) {
 		    startService(new Intent(this, Listener.class));
@@ -388,8 +396,9 @@ public class MainInterface extends Activity {
 	    unregisterReceiver(userChangeReceiver);
 	    unregisterReceiver(userEventReceiver);
 	    unregisterReceiver(serviceStateReceiver);
+	    unregisterReceiver(invitationReceiver);
 
-	    prefs.close();
+	    Preferences.close();
         targetListUpdated();
 	    unbindService(listenerConnection);
     }
@@ -398,7 +407,7 @@ public class MainInterface extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		if(prefs != null) {
-			prefs.close();
+			Preferences.close();
 		}
 	}
 

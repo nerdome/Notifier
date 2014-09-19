@@ -13,6 +13,7 @@ public class Notifier extends Application {
 	public final static String USER_PROPOSE_LIST = "de.adornis.Notifier.USER_PROPOSE_LIST";
 	public final static String USER_PROPOSE_ROSTER = "de.adornis.Notifier.USER_PROPOSE_ROSTER";
 	public final static String UPDATE_AVAILABLE = "de.adornis.Notifier.UPDATE_AVAILABLE";
+	public final static String INVITATION = "de.adornis.Notifier.INVITATION";
 
 	private static Notifier self;
 
