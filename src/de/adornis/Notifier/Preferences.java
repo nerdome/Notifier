@@ -186,7 +186,7 @@ public class Preferences extends Activity {
 		finish();
 	}
 
-	public static void sortUsers(int mode) {
+	public static boolean sortUsers(int mode) {
 		int i;
 		int j;
 		TargetUser newExtrema;
@@ -207,6 +207,7 @@ public class Preferences extends Activity {
 			}
 		}
 		c.sendBroadcast(new Intent(Notifier.USER_EVENT));
+		return reverse;
 	}
 
 	private static boolean compare(TargetUser a, TargetUser b, int mode, boolean reverse) {

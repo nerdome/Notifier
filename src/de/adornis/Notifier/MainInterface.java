@@ -341,7 +341,11 @@ public class MainInterface extends Activity {
 				startActivity(new Intent(this, Preferences.class));
 				return true;
 			case R.id.sort_alphabetically:
-				Preferences.sortUsers(Preferences.ALPHABETICALLY);
+				if(Preferences.sortUsers(Preferences.ALPHABETICALLY)) {
+					item.setTitle("sort z->a");
+				} else {
+					item.setTitle("sort a->z");
+				}
 				return true;
 			case R.id.sort_status:
 				Preferences.sortUsers(Preferences.ONLINE_STATUS);
