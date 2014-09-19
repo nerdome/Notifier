@@ -13,14 +13,9 @@ public class TargetListAdapter extends BaseAdapter {
 	private Context c;
 	private Preferences prefs;
 
-	public TargetListAdapter(Context c) {
+	public TargetListAdapter(Context c) throws UserNotFoundException {
 		this.c = c;
-		try {
-			prefs = new Preferences();
-		} catch (Preferences.NotInitializedException e) {
-			MainInterface.log("FATAL");
-			e.printStackTrace();
-		}
+		prefs = new Preferences();
 	}
 
 	@Override

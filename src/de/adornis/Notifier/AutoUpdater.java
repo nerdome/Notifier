@@ -140,7 +140,7 @@ public class AutoUpdater {
 		@Override
 		protected void onPostExecute(Integer version) {
 			if (version != currentVersion && notifyAllAftwards) {
-				PreferenceListener.notifyAll(PreferenceListener.UPDATE_AVAILABLE);
+				Notifier.getContext().sendBroadcast(new Intent(Notifier.UPDATE_AVAILABLE));
 			}
 		}
 	}

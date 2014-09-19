@@ -1,5 +1,6 @@
 package de.adornis.Notifier;
 
+import android.content.Intent;
 import org.jivesoftware.smack.packet.Presence;
 
 import java.io.Serializable;
@@ -25,7 +26,7 @@ class TargetUser extends User implements Serializable {
 
 	public void setNick(String nick) {
 		this.nick = nick;
-		PreferenceListener.notifyAll(PreferenceListener.USER_CHANGE, this.getJID());
+		Notifier.getContext().sendBroadcast(new Intent(Notifier.USER_CHANGE).putExtra("JID", this.getJID()));
 	}
 
 	public String getNick() {
@@ -50,7 +51,7 @@ class TargetUser extends User implements Serializable {
 		} else {
 			online = NOT_CHECKED;
 		}
-		PreferenceListener.notifyAll(PreferenceListener.USER_CHANGE, this.getJID());
+		Notifier.getContext().sendBroadcast(new Intent(Notifier.USER_CHANGE).putExtra("JID", this.getJID()));
 	}
 
 	private void updateOnline() {
@@ -67,6 +68,6 @@ class TargetUser extends User implements Serializable {
 	public void incomingPing() {
 		resources.add("NOTIFIER_RECEIVER");
 		updateOnline();
-		PreferenceListener.notifyAll(PreferenceListener.USER_CHANGE, this.getJID());
+		Notifier.getContext().sendBroadcast(new Intent(Notifier.USER_CHANGE).putExtra("JID", this.getJID()));
 	}
 }

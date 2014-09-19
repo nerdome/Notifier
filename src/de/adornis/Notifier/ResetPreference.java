@@ -18,10 +18,9 @@ public class ResetPreference extends DialogPreference {
 	protected void onDialogClosed(boolean positiveResult) {
 		if(positiveResult) {
 			try {
-				Preferences prefs = new Preferences();
-				prefs.reset();
-			} catch (Preferences.NotInitializedException e) {
-				MainInterface.log("FATAL");
+				(new Preferences()).reset();
+			} catch (UserNotFoundException e) {
+				MainInterface.log("FATAL - exception in ResetPreference in onDialogClosed()");
 				e.printStackTrace();
 			}
 		}

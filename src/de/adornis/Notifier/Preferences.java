@@ -15,19 +15,22 @@ public class Preferences extends Activity {
 	public static final int ALPHABETICALLY = 0;
 	public static final int ONLINE_STATUS = 1;
 
-	private static Context context;
+	private static Context c = Notifier.getContext();
 
 	private static SharedPreferences prefs;
 
 	private static ApplicationUser appUser;
 	private static ArrayList<TargetUser> users = new ArrayList<>();
 	private static File usersFile;
+	private static int listenerRunning;
+
+	private static boolean initialized = false;
 
 	// must be called before making a pref object
-	public static void initialize(Context c) throws UserNotFoundException {
-		Preferences.context = c.getApplicationContext();
-		prefs = context.getSharedPreferences("only_settings_i_got", MODE_PRIVATE);
-		usersFile = new File(context.getFilesDir(), "targetUsers");
+	public static void initialize() throws UserNotFoundException {
+		prefs = c.getSharedPreferences("only_settings_i_got", MODE_PRIVATE);
+		usersFile = new File(c.getFilesDir(), "targetUsers");
+		listenerRunning = prefs.getInt("listener_running", Listener.DISCONNECTED);
 
 		try {
 			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""), prefs.getString("domain", ""));
@@ -39,7 +42,7 @@ public class Preferences extends Activity {
 		try {
 			if(!usersFile.createNewFile()) {
 				try {
-					ObjectInputStream ois = new ObjectInputStream(context.openFileInput("targetUsers"));
+					ObjectInputStream ois = new ObjectInputStream(c.openFileInput("targetUsers"));
 					Object in = ois.readObject();
 					users = (ArrayList<TargetUser>) in;
 					ois.close();
@@ -55,11 +58,19 @@ public class Preferences extends Activity {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		initialized = true;
 	}
 
-	public Preferences() throws NotInitializedException {
-		if(context == null) {
-			throw new NotInitializedException();
+	public Preferences() throws UserNotFoundException {
+		if(!initialized) {
+			try {
+				initialize();
+			} catch (UserNotFoundException e) {
+				MainInterface.log("NO APP USER");
+				Notifier.getContext().startActivity(new Intent(Notifier.getContext(), FirstStart.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+				throw e;
+			}
 		}
 	}
 
@@ -67,22 +78,23 @@ public class Preferences extends Activity {
 		return appUser;
 	}
 
-	public void setAppUser(ApplicationUser usr) {
+	public static void setAppUser(ApplicationUser usr) {
 		appUser = usr;
-		PreferenceListener.notifyAll(PreferenceListener.CREDENTIALS);
+		c.sendBroadcast(new Intent(Notifier.CREDENTIALS));
 	}
 
-	public void close() {
+	public static void close() {
 		MainInterface.log("saving...");
 
 		if(appUser != null) {
-			prefs.edit().putString("user", appUser.getUsername()).commit();
-			prefs.edit().putString("password", appUser.getPassword()).commit();
-			prefs.edit().putString("domain", appUser.getDomain()).commit();
+			prefs.edit().putString("user", appUser.getUsername())
+					.putString("password", appUser.getPassword())
+					.putString("domain", appUser.getDomain())
+					.putInt("listener_running", listenerRunning).commit();
 		}
 
 		try {
-			ObjectOutputStream oos = new ObjectOutputStream(context.openFileOutput("targetUsers", MODE_PRIVATE));
+			ObjectOutputStream oos = new ObjectOutputStream(c.openFileOutput("targetUsers", MODE_PRIVATE));
 			oos.writeObject(users);
 			oos.close();
 		} catch (IOException e) {
@@ -112,7 +124,7 @@ public class Preferences extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		PreferenceListener.notifyAll(PreferenceListener.CREDENTIALS);
+		c.sendBroadcast(new Intent(Notifier.CREDENTIALS));
 	}
 
 	public void addUser(String user) throws InvalidJIDException {
@@ -122,14 +134,12 @@ public class Preferences extends Activity {
 	public void addUser(String user, String nick) throws InvalidJIDException {
 		if(findUser(user) == null) {
 			users.add(new TargetUser(user, user.substring(0, user.indexOf("@"))));
-			PreferenceListener.notifyAll(PreferenceListener.USER_ADD_OR_REMOVE, user);
+			c.sendBroadcast(new Intent(Notifier.USER_EVENT));
 		}
 	}
 
 	public void delUser(String JID) throws UserNotFoundException {
 		users.remove(getUserId(JID));
-		// TODO necessary?
-		PreferenceListener.notifyAll(PreferenceListener.USER_ADD_OR_REMOVE);
 	}
 
 	public TargetUser getUser(String JID) throws UserNotFoundException {
@@ -150,12 +160,12 @@ public class Preferences extends Activity {
 	}
 
 	public void setConnected(int running) {
-		prefs.edit().putInt("listener_running", running).commit();
-		PreferenceListener.notifyAll(PreferenceListener.SERVICE);
+		listenerRunning = running;
+		c.sendBroadcast(new Intent(Notifier.SERVICE));
 	}
 
 	public int isConnected() {
-		return prefs.getInt("listener_running", Listener.DISCONNECTED);
+		return listenerRunning;
 	}
 
 	public void reset() {
@@ -167,11 +177,11 @@ public class Preferences extends Activity {
 		} else {
 			MainInterface.log("file has NOT been deleted successfully!");
 		}
-		PreferenceListener.notifyAll(PreferenceListener.USER_ADD_OR_REMOVE);
+		c.sendBroadcast(new Intent(Notifier.USER_EVENT));
 
-		Intent i = new Intent(context, FirstStart.class);
+		Intent i = new Intent(c, FirstStart.class);
 		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		context.startActivity(i);
+		c.startActivity(i);
 
 		finish();
 	}
@@ -196,7 +206,7 @@ public class Preferences extends Activity {
 				users.set(i, newExtrema);
 			}
 		}
-		PreferenceListener.notifyAll(PreferenceListener.USER_ADD_OR_REMOVE);
+		c.sendBroadcast(new Intent(Notifier.USER_EVENT));
 	}
 
 	private static boolean compare(TargetUser a, TargetUser b, int mode, boolean reverse) {
@@ -211,9 +221,5 @@ public class Preferences extends Activity {
 				MainInterface.log("this shouldn't have happened while sorting");
 				return false;
 		}
-	}
-
-
-	public class NotInitializedException extends Exception {
 	}
 }

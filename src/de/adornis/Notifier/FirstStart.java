@@ -16,8 +16,6 @@ import java.io.IOException;
 
 public class FirstStart extends Activity {
 
-	Preferences prefs;
-
 	private EditText userEditText;
 	private EditText passwordEditText;
 	private Button verify;
@@ -26,12 +24,7 @@ public class FirstStart extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		try {
-			prefs = new Preferences();
-		} catch (Preferences.NotInitializedException e) {
-			MainInterface.log("FATAL");
-			e.printStackTrace();
-		}
+		MainInterface.log("asdf");
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.first_start);
@@ -101,15 +94,15 @@ public class FirstStart extends Activity {
 		protected void onPostExecute(Boolean success) {
 			if(success) {
 				try {
-					prefs.setAppUser(new ApplicationUser(user, password, domain));
+					Preferences.setAppUser(new ApplicationUser(user, password, domain));
 				} catch (InvalidJIDException e) {
 					MainInterface.log("Invalid JID, shouldn't happen though because they have been verified");
 				}
-				prefs.close();
+				Preferences.close();
 				startActivity(new Intent(FirstStart.this, MainInterface.class));
 				finish();
 			} else {
-				prefs.setAppUser(null);
+				Preferences.setAppUser(null);
 				statusTextView.setText("Please use your JID (user@domain), the login process was not successful");
 				progressBar.setVisibility(View.INVISIBLE);
 			}

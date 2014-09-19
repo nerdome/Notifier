@@ -31,23 +31,28 @@ public class Listener extends Service {
 
 	private ListenerThread listener;
 
-	private boolean contains(String[] array, String string) {
-		for(String current : array) {
-			if(current.equals(string)) {
-				return true;
-			}
+	private BroadcastReceiver credentialsReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			reconnect();
 		}
-		return false;
-	}
+	};
 
-	public void fetchInitialOnlineStates(String... JID) {
+	private BroadcastReceiver userEventReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			fetchInitialOnlineStates(intent.getStringExtra("JID") == null ? "" : intent.getStringExtra("JID"));
+		}
+	};
+
+	public void fetchInitialOnlineStates(String JID) {
 		for (RosterEntry current : conn.getRoster().getEntries()) {
 			try {
-				if(JID.length == 0 || contains(JID, current.getUser())) {
+				if(JID.equals("") || current.getUser().equals(JID)) {
 					prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresence(current.getUser()));
 				}
 			} catch (UserNotFoundException e) {
-				PreferenceListener.notifyAll(PreferenceListener.USER_PROPOSE_LIST, current.getUser());
+				getApplicationContext().sendBroadcast(new Intent(Notifier.USER_PROPOSE_LIST).putExtra("JID", current.getUser()));
 			}
 		}
 
@@ -72,58 +77,17 @@ public class Listener extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 	    MainInterface.log("onStartCommand");
 
+	    registerReceiver(credentialsReceiver, new IntentFilter(Notifier.CREDENTIALS));
+	    registerReceiver(userEventReceiver, new IntentFilter(Notifier.USER_EVENT));
+
 	    try {
 		    prefs = new Preferences();
-		    prefs.setConnected(DISCONNECTED);
-	    } catch (Preferences.NotInitializedException e) {
-		    MainInterface.log("FATAL");
-		    e.printStackTrace();
+	    } catch (UserNotFoundException e) {
+		    stopSelf();
 	    }
+	    prefs.setConnected(DISCONNECTED);
 
 	    attemptConnect();
-
-	    PreferenceListener.registerListener(new PreferenceListener() {
-
-		    @Override
-		    public void onCredentialsChanged() {
-			    reconnect();
-		    }
-
-		    @Override
-		    public void onUserChanged(String... JID) {
-
-		    }
-
-		    @Override
-		    public void onUserAdd(String... JID) {
-			    fetchInitialOnlineStates(JID);
-		    }
-
-		    @Override
-		    public void onUserProposeList(String JID) {
-
-		    }
-
-		    @Override
-		    public void onUserProposeRoster(String JID) {
-
-		    }
-
-		    @Override
-		    public void onStopCommand() {
-
-		    }
-
-		    @Override
-		    public void onServiceStateChanged() {
-
-		    }
-
-		    @Override
-		    public void onUpdateAvailable() {
-
-		    }
-	    });
 
         flags = START_STICKY;
         Notification.Builder nb = new Notification.Builder(getApplicationContext());
@@ -215,14 +179,8 @@ public class Listener extends Service {
 	public void addToRoster(String JID) {
 		try {
 			conn.getRoster().createEntry(JID, JID.substring(0, JID.indexOf("@")), null);
-		} catch (SmackException.NotLoggedInException e) {
+		} catch (Exception ignored) {
 			// whatever...
-		} catch (SmackException.NoResponseException e) {
-			// whatever...
-		} catch (XMPPException.XMPPErrorException e) {
-			// whatever...
-		} catch (SmackException.NotConnectedException e) {
-			// whatever
 		}
 	}
 
@@ -275,7 +233,7 @@ public class Listener extends Service {
 					prefs.setConnected(CONNECTED);
 				}
 
-				fetchInitialOnlineStates();
+				fetchInitialOnlineStates("");
 
 				ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
 					@Override
