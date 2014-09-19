@@ -136,8 +136,8 @@ public class Listener extends Service {
 	@Override
     public void onDestroy() {
 		MainInterface.log("onDestroy");
+		disconnect();
         super.onDestroy();
-        disconnect();
     }
 
 	public void attemptConnect() {

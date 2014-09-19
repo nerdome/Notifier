@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 
 public class AutoUpdater {
 
-	private int currentVersion;
+	private int currentVersion = 0;
 	private int futureVersion = 0;
 	private IOException e;
 	private String outputFilePath = "";

@@ -112,8 +112,7 @@ public class Preferences extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		stopService(new Intent(this, Listener.class));
-		startService(new Intent(this, Listener.class));
+		PreferenceListener.notifyAll(PreferenceListener.CREDENTIALS);
 	}
 
 	public void addUser(String user) throws InvalidJIDException {

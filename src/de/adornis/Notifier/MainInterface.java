@@ -54,6 +54,21 @@ public class MainInterface extends Activity {
 
 		MainInterface.log("Starting MainInterface...");
 
+		try {
+			Preferences.initialize(this);
+		} catch (UserNotFoundException e) {
+			startActivity(new Intent(this, FirstStart.class));
+			finish();
+			return;
+		}
+
+		try {
+			prefs = new Preferences();
+		} catch (Preferences.NotInitializedException e) {
+			MainInterface.log("FATAL");
+			e.printStackTrace();
+		}
+
 		PreferenceListener.registerListener(new PreferenceListener() {
 
 			@Override
@@ -133,19 +148,23 @@ public class MainInterface extends Activity {
 
 			@Override
 			public void onServiceStateChanged() {
-				switch (prefs.isConnected()) {
-					case Listener.CONNECTED:
-						setupSwitch(true, true);
-						break;
-					case Listener.CONNECTING:
-						setupSwitch(true, false);
-						break;
-					case Listener.DISCONNECTED:
-						setupSwitch(false, true);
-						break;
-					case Listener.DISCONNECTING:
-						setupSwitch(false, false);
-						break;
+				if(prefs != null) {
+					switch (prefs.isConnected()) {
+						case Listener.CONNECTED:
+							setupSwitch(true, true);
+							break;
+						case Listener.CONNECTING:
+							setupSwitch(true, false);
+							break;
+						case Listener.DISCONNECTED:
+							setupSwitch(false, true);
+							break;
+						case Listener.DISCONNECTING:
+							setupSwitch(false, false);
+							break;
+					}
+				} else {
+					setupSwitch(false, false);
 				}
 			}
 
@@ -172,21 +191,6 @@ public class MainInterface extends Activity {
 			// lawl this doesn't exist... yes it does -.-
 		} catch (IOException e) {
 			MainInterface.log("failed to fetch version");
-		}
-
-		try {
-			Preferences.initialize(this);
-		} catch (UserNotFoundException e) {
-			startActivity(new Intent(this, FirstStart.class));
-			finish();
-			return;
-		}
-
-		try {
-			prefs = new Preferences();
-		} catch (Preferences.NotInitializedException e) {
-			MainInterface.log("FATAL");
-			e.printStackTrace();
 		}
 
 
