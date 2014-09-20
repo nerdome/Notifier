@@ -370,6 +370,8 @@ public class MainInterface extends Activity {
 
 	public void targetListUpdated() {
 		((TargetListAdapter) targetListView.getAdapter()).notifyDataSetChanged();
+		notifyButton.setEnabled(false);
+		currentTarget = null;
     }
 
     @Override

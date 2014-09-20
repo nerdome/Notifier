@@ -131,7 +131,7 @@ public class Preferences extends Activity {
 	}
 
 	public void addUser(String user) throws InvalidJIDException {
-		if(user.contains("@") && !user.contains(".")) {
+		if(user.contains("@") && user.contains(".")) {
 			addUser(user, user.substring(0, user.indexOf("@")));
 		} else {
 			throw new InvalidJIDException(user);

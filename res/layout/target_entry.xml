@@ -4,8 +4,7 @@
     android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:focusable="false">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <ImageView
         android:layout_width="12dp"
@@ -42,8 +41,8 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:focusable="false"
             android:text="Invite to Notifier"
+            android:focusable="false"
             android:id="@+id/invite"
             android:layout_weight="0" />
     </LinearLayout>
