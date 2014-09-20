@@ -4,7 +4,7 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-    android:padding="20dp">
+              android:padding="20dp">
 
     <TextView
         android:layout_width="wrap_content"
@@ -34,15 +34,39 @@
         android:minHeight="40dp"
         android:longClickable="false" />
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/username"
-        android:layout_gravity="center_horizontal"
-        android:hint="Username..."
-        android:autoText="false"
-        android:text="yorrd@adornis.de"
-        android:inputType="textEmailAddress" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/username"
+            android:hint="Username..."
+            android:autoText="false"
+            android:text="yorrd"
+            android:inputType="textEmailAddress"
+            android:layout_weight="2" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@"
+            android:id="@+id/textView3"
+            android:layout_weight="0"
+            android:textSize="24dp" />
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/domain"
+            android:hint="Username..."
+            android:autoText="false"
+            android:text="adornis.de"
+            android:inputType="textEmailAddress"
+            android:layout_weight="3" />
+    </LinearLayout>
 
     <EditText
         android:layout_width="match_parent"

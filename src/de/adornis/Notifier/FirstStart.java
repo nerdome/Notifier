@@ -17,6 +17,7 @@ import java.io.IOException;
 public class FirstStart extends Activity {
 
 	private EditText userEditText;
+	private EditText domainEditText;
 	private EditText passwordEditText;
 	private Button verify;
 	private ProgressBar progressBar;
@@ -30,6 +31,7 @@ public class FirstStart extends Activity {
 		setContentView(R.layout.first_start);
 
 		userEditText = (EditText) findViewById(R.id.username);
+		domainEditText = (EditText) findViewById(R.id.domain);
 		passwordEditText = (EditText) findViewById(R.id.password);
 		verify = (Button) findViewById(R.id.verify);
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -44,12 +46,10 @@ public class FirstStart extends Activity {
 				progressBar.setVisibility(View.VISIBLE);
 
 				String user = String.valueOf(userEditText.getText());
-				String domain;
+				String domain = String.valueOf(domainEditText.getText());
 				String password = String.valueOf(passwordEditText.getText());
 
 				if(user.contains("@") && user.contains(".")) {
-					domain = user.substring(user.indexOf("@") + 1);
-					user = user.substring(0, user.indexOf("@"));
 					Verificator ver = new Verificator();
 					ver.execute(user, password, domain);
 				} else {
