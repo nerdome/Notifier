@@ -1,5 +1,6 @@
 package de.adornis.Notifier;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.Context;
@@ -11,11 +12,8 @@ import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.SoundPool;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.Vibrator;
-import android.preference.PreferenceManager;
+import android.os.*;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -96,6 +94,18 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.noise_maker);
+
+	    // 4.4 and up
+	    this.setImmersive(true);
+	    // 4.1 and up
+	    View decorView = getWindow().getDecorView();
+	    // Hide the status bar.
+	    int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+	    decorView.setSystemUiVisibility(uiOptions);
+	    // Remember that you should never show the action bar if the
+	    // status bar is hidden, so hide that too if necessary.
+	    ActionBar actionBar = getActionBar();
+	    actionBar.hide();
 
 	    MediaMetadataRetriever data = new MediaMetadataRetriever();
 	    data.setDataSource(getApplicationContext(), Uri.parse("android.resource://de.adornis.Notifier/" + R.raw.toyphone_dialling));

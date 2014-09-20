@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="de.adornis.Notifier"
-          android:versionCode="1411211671"
+          android:versionCode="1411211672"
           android:versionName="1.0">
     <uses-sdk android:targetSdkVersion="20"
               android:minSdkVersion="14" />
@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
 
     <uses-feature android:name="android.hardware.camera.flash" />
 

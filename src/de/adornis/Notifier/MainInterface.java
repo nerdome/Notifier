@@ -306,7 +306,7 @@ public class MainInterface extends Activity {
 					        sendBroadcast(new Intent(Notifier.USER_PROPOSE_ROSTER).putExtra("JID", thatNewGuy));
 				        }
 			        } catch (InvalidJIDException e) {
-	                    (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage("This is not a valid JID (user@domain) or the user exists already: " + e.getJID()).setPositiveButton("OK", null).create().show();
+	                    (new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage(e.getJID() + " is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
 			        }
 		        }
 	        }
