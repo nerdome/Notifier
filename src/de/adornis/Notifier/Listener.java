@@ -162,7 +162,7 @@ public class Listener extends Service {
 		new CountDownTimer(config.getDelay(), 1000) {
 			@Override
 			public void onTick(long millisUntilFinished) {
-
+				config.tickInActivity((int) millisUntilFinished / 1000);
 			}
 
 			@Override
@@ -172,6 +172,7 @@ public class Listener extends Service {
 				} catch (SmackException.NotConnectedException e) {
 					MainInterface.log("FATAL connection error while sending message");
 				}
+				config.tickInActivity(0);
 			}
 		}.start();
 	}

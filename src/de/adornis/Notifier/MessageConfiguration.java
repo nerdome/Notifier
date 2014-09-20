@@ -1,5 +1,6 @@
 package de.adornis.Notifier;
 
+import android.widget.TextView;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 
@@ -9,6 +10,7 @@ public class MessageConfiguration {
 	private String resource = "NOTIFIER_RECEIVER";
 	private String message = null;
 	private long delay = 0;
+	private TextView countdownView;
 
 	public MessageConfiguration(String receiver, String message) {
 		this.receiver = receiver;
@@ -19,12 +21,26 @@ public class MessageConfiguration {
 		this.resource = resource;
 	}
 
-	public void setDelay(long delay) {
+	public void setDelay(long delay, TextView countdownView) {
 		this.delay = delay;
+		this.countdownView = countdownView;
 	}
 
 	public long getDelay() {
 		return delay;
+	}
+
+	public void tickInActivity(final int number) {
+		countdownView.post(new Runnable() {
+			@Override
+			public void run() {
+				if(number != 0) {
+					countdownView.setText(number + "");
+				} else {
+					countdownView.setText("");
+				}
+			}
+		});
 	}
 
 	public Message getMessage(Preferences prefs) {
