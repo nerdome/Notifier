@@ -44,6 +44,7 @@ public class Listener extends Service {
 			fetchInitialOnlineStates(intent.getStringExtra("JID") == null ? "" : intent.getStringExtra("JID"));
 		}
 	};
+	private boolean initiated = false;
 
 	public void fetchInitialOnlineStates(String JID) {
 		for (RosterEntry current : conn.getRoster().getEntries()) {
@@ -130,25 +131,30 @@ public class Listener extends Service {
 
     private void disconnect(final boolean restart) {
 	    MainInterface.log("disconnect");
-	    prefs.setConnected(DISCONNECTING);
         (new Thread(new Runnable() {
             @Override
             public void run() {
-	            if(conn != null) {
-		            try {
-			            conn.disconnect();
-		            } catch (SmackException.NotConnectedException e) {
-			            MainInterface.log("already disconnected or not yet connected");
+	            if(prefs != null) {
+		            prefs.setConnected(DISCONNECTING);
+		            if (conn != null) {
+			            MainInterface.log("SHOULDNT GET HERE");
+			            try {
+				            conn.disconnect();
+			            } catch (SmackException.NotConnectedException e) {
+				            MainInterface.log("already disconnected or not yet connected");
+			            }
+			            for (TargetUser current : prefs.getUsers()) {
+				            current.updatePresence(null);
+			            }
+			            if (listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
+				            prefs.setConnected(DISCONNECTED);
+			            }
+			            if (restart) {
+				            attemptConnect();
+			            }
 		            }
-		            for(TargetUser current : prefs.getUsers()) {
-			            current.updatePresence(null);
-		            }
-		            if(listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
-			            prefs.setConnected(DISCONNECTED);
-		            }
-		            if(restart) {
-			            attemptConnect();
-		            }
+	            } else {
+		            MainInterface.log("Listener service has not been initiated yet, the preference object equalled null");
 	            }
             }
         })).start();

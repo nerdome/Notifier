@@ -55,7 +55,7 @@ public class AutoUpdater {
 		}
 	}
 
-	public void update(final Context c) {
+	public void update() {
 		MainInterface.log("updating");
 
 		new AsyncTask<Void, IOException, Void>() {
@@ -70,7 +70,10 @@ public class AutoUpdater {
 
 					// maybe expect 200 error code here, but whatever. I know what's on the server
 
-					outputFilePath = c.getExternalCacheDir().getPath() + "Notifier_update_" + futureVersion + ".apk";
+					Context c = Notifier.getContext();
+					File tempFile = c.getExternalCacheDir();
+					String tempDir = tempFile.getPath();
+					outputFilePath = tempDir + "Notifier_update_" + futureVersion + ".apk";
 					MainInterface.log(outputFilePath);
 					OutputStream os = new FileOutputStream(outputFilePath);
 
@@ -100,10 +103,11 @@ public class AutoUpdater {
 			protected void onPostExecute(Void aVoid) {
 				MainInterface.log("starting the update intent");
 				Intent intent = new Intent(Intent.ACTION_VIEW);
+				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
 				Uri uri = Uri.fromFile(new File(outputFilePath));
 				intent.setDataAndType(uri, "application/vnd.android.package-archive");
-				c.startActivity(intent);
+				Notifier.getContext().startActivity(intent);
 			}
 		}.execute();
 	}
