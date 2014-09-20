@@ -131,7 +131,11 @@ public class Preferences extends Activity {
 	}
 
 	public void addUser(String user) throws InvalidJIDException {
-		addUser(user, user.substring(0, user.indexOf("@")));
+		if(user.contains("@") && !user.contains(".")) {
+			addUser(user, user.substring(0, user.indexOf("@")));
+		} else {
+			throw new InvalidJIDException(user);
+		}
 	}
 
 	public void addUser(String user, String nick) throws InvalidJIDException {
@@ -176,7 +180,6 @@ public class Preferences extends Activity {
 	}
 
 	public String getAppAfterNotified() {
-		MainInterface.log(prefs.getString("activity_after_wake", "activity after wake"));
 		return prefs.getString("activity_after_wake", "");
 	}
 
