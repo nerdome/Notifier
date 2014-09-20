@@ -3,11 +3,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.*;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
@@ -19,6 +17,7 @@ public class FirstStart extends Activity {
 	private EditText userEditText;
 	private EditText domainEditText;
 	private EditText passwordEditText;
+	private CheckBox showPasswordCheckbox;
 	private Button verify;
 	private ProgressBar progressBar;
 	private TextView statusTextView;
@@ -33,6 +32,7 @@ public class FirstStart extends Activity {
 		userEditText = (EditText) findViewById(R.id.username);
 		domainEditText = (EditText) findViewById(R.id.domain);
 		passwordEditText = (EditText) findViewById(R.id.password);
+		showPasswordCheckbox = (CheckBox) findViewById(R.id.visiblePassword);
 		verify = (Button) findViewById(R.id.verify);
 		progressBar = (ProgressBar) findViewById(R.id.progressBar);
 		statusTextView = (TextView) findViewById(R.id.statusText);
@@ -49,12 +49,22 @@ public class FirstStart extends Activity {
 				String domain = String.valueOf(domainEditText.getText());
 				String password = String.valueOf(passwordEditText.getText());
 
-				if(user.contains("@") && user.contains(".")) {
+				if(domain.contains(".")) {
 					Verificator ver = new Verificator();
 					ver.execute(user, password, domain);
 				} else {
-					statusTextView.setText("You did not enter a proper JID");
+					statusTextView.setText("You did not enter a proper domain");
 					progressBar.setVisibility(View.INVISIBLE);
+				}
+			}
+		});
+		showPasswordCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(!isChecked) {
+					passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+				} else {
+					passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
 				}
 			}
 		});
