@@ -22,7 +22,7 @@ public class Preferences extends Activity {
 	private static ApplicationUser appUser;
 	private static ArrayList<TargetUser> users = new ArrayList<>();
 	private static File usersFile;
-	private static int listenerRunning;
+	private static int listenerRunning = Listener.DISCONNECTED;
 
 	private static boolean initialized = false;
 
@@ -90,7 +90,7 @@ public class Preferences extends Activity {
 			prefs.edit().putString("user", appUser.getUsername())
 					.putString("password", appUser.getPassword())
 					.putString("domain", appUser.getDomain())
-					.putInt("listener_running", listenerRunning).commit();
+					.putInt("listener_running", Listener.DISCONNECTED).commit();
 		}
 
 		try {

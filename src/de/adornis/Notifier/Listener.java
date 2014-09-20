@@ -100,13 +100,13 @@ public class Listener extends Service {
 
 	@Override
     public void onDestroy() {
-		MainInterface.log("onDestroy");
+		MainInterface.log("onDestroy, prefs: " + (prefs != null ? "set" : "not set"));
 		disconnect();
         super.onDestroy();
     }
 
 	public void attemptConnect() {
-		MainInterface.log("attemptConnect");
+		MainInterface.log("attemptConnect, prefs: " + (prefs != null ? "set" : "not set"));
 		prefs.setConnected(CONNECTING);
 		if(listener != null) {
 			if(listener.getStatus().equals(AsyncTask.Status.FINISHED)) {
@@ -130,31 +130,26 @@ public class Listener extends Service {
 	}
 
     private void disconnect(final boolean restart) {
-	    MainInterface.log("disconnect");
+	    MainInterface.log("disconnect, prefs: " + (prefs != null ? "set" : "not set"));
         (new Thread(new Runnable() {
             @Override
             public void run() {
-	            if(prefs != null) {
-		            prefs.setConnected(DISCONNECTING);
-		            if (conn != null) {
-			            MainInterface.log("SHOULDNT GET HERE");
-			            try {
-				            conn.disconnect();
-			            } catch (SmackException.NotConnectedException e) {
-				            MainInterface.log("already disconnected or not yet connected");
-			            }
-			            for (TargetUser current : prefs.getUsers()) {
-				            current.updatePresence(null);
-			            }
-			            if (listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
-				            prefs.setConnected(DISCONNECTED);
-			            }
-			            if (restart) {
-				            attemptConnect();
-			            }
+	            prefs.setConnected(DISCONNECTING);
+	            if (conn != null) {
+		            try {
+			            conn.disconnect();
+		            } catch (SmackException.NotConnectedException e) {
+			            MainInterface.log("already disconnected or not yet connected");
 		            }
-	            } else {
-		            MainInterface.log("Listener service has not been initiated yet, the preference object equalled null");
+		            for (TargetUser current : prefs.getUsers()) {
+			            current.updatePresence(null);
+		            }
+		            if (listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
+			            prefs.setConnected(DISCONNECTED);
+		            }
+		            if (restart) {
+			            attemptConnect();
+		            }
 	            }
             }
         })).start();

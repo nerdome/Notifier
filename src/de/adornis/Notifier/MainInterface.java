@@ -25,18 +25,19 @@ public class MainInterface extends Activity {
 		return connectionConfiguration;
 	}
 
-	private Listener listener;
+	private Listener listener = null;
     private ServiceConnection listenerConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
 			listener = ((Listener) ((Listener.ListenerBinder) service).getService());
-	        if(prefs.isAutoStart()) {
+	        if(prefs.isAutoStart() && prefs.isConnected() == Listener.DISCONNECTED) {
 		        listener.attemptConnect();
 	        }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+	        listener = null;
         }
     };
 
