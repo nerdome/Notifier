@@ -50,6 +50,7 @@ class TargetUser extends User implements Serializable {
 			updateOnline();
 		} else {
 			online = NOT_CHECKED;
+			resources.remove("NOTIFIER_RECEIVER");
 		}
 		Notifier.getContext().sendBroadcast(new Intent(Notifier.USER_CHANGE).putExtra("JID", this.getJID()));
 	}
