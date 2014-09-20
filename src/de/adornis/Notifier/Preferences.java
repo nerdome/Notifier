@@ -177,7 +177,7 @@ public class Preferences extends Activity {
 	}
 
 	public String getAppAfterNotified() {
-		return prefs.getString("start_after_boot", "");
+		return prefs.getString("activity_after_wake", "");
 	}
 
 	public void setConnected(int running) {

@@ -65,6 +65,7 @@ public class AutoUpdater {
 					File tempFile = c.getExternalCacheDir();
 					if(tempFile == null) {
 						MainInterface.log("FATAL - couldn't retrieve getExternalCacheDir()");
+						outputFilePath = "";
 						e = new IOException();
 						return null;
 					}
@@ -95,12 +96,16 @@ public class AutoUpdater {
 
 			@Override
 			protected void onPostExecute(Void aVoid) {
-				Intent intent = new Intent(Intent.ACTION_VIEW);
-				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				if(!outputFilePath.equals("")) {
+					Intent intent = new Intent(Intent.ACTION_VIEW);
+					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-				Uri uri = Uri.fromFile(new File(outputFilePath));
-				intent.setDataAndType(uri, "application/vnd.android.package-archive");
-				Notifier.getContext().startActivity(intent);
+					Uri uri = Uri.fromFile(new File(outputFilePath));
+					intent.setDataAndType(uri, "application/vnd.android.package-archive");
+					Notifier.getContext().startActivity(intent);
+				} else {
+					MainInterface.log("Not doing update, path was old");
+				}
 			}
 		}.execute();
 	}

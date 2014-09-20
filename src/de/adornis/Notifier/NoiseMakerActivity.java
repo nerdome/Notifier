@@ -118,12 +118,14 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 	    Intent startIntent = null;
 	    try {
 		    String packg = (new Preferences()).getAppAfterNotified();
+		    MainInterface.log(packg);
 		    startIntent = getPackageManager().getLaunchIntentForPackage(packg);
 	    } catch (UserNotFoundException e) {
 		    MainInterface.log("Couldn't initiate preferences in NoiseMakerActivity onDestroy, setting package to open empty");
 	    }
+	    MainInterface.log(startIntent == null? "no startintent" : startIntent.getPackage());
 	    if(startIntent == null) {
-		    MainInterface.log("Either the user hasn't entered one or the activity to be opened cannot be opened existence of activity after awake isn't checked #13 ");
+		    MainInterface.log("Either the user hasn't entered one or the activity to be opened cannot be opened");
 		    // open main activity
 		    Intent uiIntent = new Intent(this, MainInterface.class);
 		    uiIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
