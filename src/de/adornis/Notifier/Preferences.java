@@ -9,6 +9,8 @@ import android.os.Bundle;
 import java.io.*;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Preferences extends Activity {
 
@@ -21,6 +23,7 @@ public class Preferences extends Activity {
 
 	private static ApplicationUser appUser;
 	private static ArrayList<TargetUser> users = new ArrayList<>();
+	private static Set<String> ignoredRosterUsers;
 	private static File usersFile;
 	private static int listenerRunning = Listener.DISCONNECTED;
 
@@ -31,6 +34,7 @@ public class Preferences extends Activity {
 		prefs = c.getSharedPreferences("only_settings_i_got", MODE_PRIVATE);
 		usersFile = new File(c.getFilesDir(), "targetUsers");
 		listenerRunning = prefs.getInt("listener_running", Listener.DISCONNECTED);
+		ignoredRosterUsers = prefs.getStringSet("ignored_roster_users", new HashSet<String>());
 
 		try {
 			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""), prefs.getString("domain", ""));
@@ -87,7 +91,8 @@ public class Preferences extends Activity {
 			prefs.edit().putString("user", appUser.getUsername())
 					.putString("password", appUser.getPassword())
 					.putString("domain", appUser.getDomain())
-					.putInt("listener_running", Listener.DISCONNECTED).commit();
+					.putInt("listener_running", Listener.DISCONNECTED)
+					.putStringSet("ignored_roster_users", ignoredRosterUsers).commit();
 		}
 
 		try {
@@ -133,6 +138,7 @@ public class Preferences extends Activity {
 			users.add(new TargetUser(user, nick));
 			c.sendBroadcast(new Intent(Notifier.USER_EVENT));
 		}
+		unignoreRosterUser(user);
 	}
 
 	public void delUser(String JID) throws UserNotFoundException {
@@ -150,6 +156,18 @@ public class Preferences extends Activity {
 			}
 		}
 		throw new UserNotFoundException(JID);
+	}
+
+	public boolean isRosterUserIgnored(String JID) {
+		return ignoredRosterUsers.contains(JID) || findUser(JID) != null;
+	}
+
+	public void ignoreRosterUser(String JID) {
+		ignoredRosterUsers.add(JID);
+	}
+
+	public void unignoreRosterUser(String JID) {
+		ignoredRosterUsers.remove(JID);
 	}
 
 	public boolean isAutoStart() {

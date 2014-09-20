@@ -55,27 +55,36 @@ public class MainInterface extends Activity {
 	private BroadcastReceiver listProposeReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, final Intent intent) {
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					final String JID = intent.getStringExtra("JID");
-					AlertDialog.Builder builder = new AlertDialog.Builder(MainInterface.this);
-					builder.setTitle(JID);
-					builder.setMessage("Do you want to add this user from your roster to your target list?");
-					builder.setNegativeButton("No", null);
-					builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							try {
-								prefs.addUser(JID);
-							} catch (InvalidJIDException e) {
-								MainInterface.log("this should never happen, JIDs from the roster should not be wrong");
+			if(!prefs.isRosterUserIgnored(intent.getStringExtra("JID"))) {
+				// ignore first, it will be unignored but this way, we prevent further dialogs from popping up
+				prefs.ignoreRosterUser(intent.getStringExtra("JID"));
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						final String JID = intent.getStringExtra("JID");
+						AlertDialog.Builder builder = new AlertDialog.Builder(MainInterface.this);
+						builder.setTitle(JID);
+						builder.setMessage("Do you want to add this user from your roster to your target list?");
+						builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								prefs.ignoreRosterUser(JID);
 							}
-						}
-					});
-					builder.create().show();
-				}
-			});
+						});
+						builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								try {
+									prefs.addUser(JID);
+								} catch (InvalidJIDException e) {
+									MainInterface.log("this should never happen, JIDs from the roster should not be wrong");
+								}
+							}
+						});
+						builder.create().show();
+					}
+				});
+			}
 		}
 	};
 	private BroadcastReceiver rosterProposeReceiver = new BroadcastReceiver() {
