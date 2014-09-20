@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 
 import java.io.*;
 import java.text.Collator;
@@ -31,7 +32,7 @@ public class Preferences extends Activity {
 
 	// must be called before making a pref object
 	public static void initialize() throws UserNotFoundException {
-		prefs = c.getSharedPreferences("only_settings_i_got", MODE_PRIVATE);
+		prefs = PreferenceManager.getDefaultSharedPreferences(c);
 		usersFile = new File(c.getFilesDir(), "targetUsers");
 		listenerRunning = prefs.getInt("listener_running", Listener.DISCONNECTED);
 		ignoredRosterUsers = prefs.getStringSet("ignored_roster_users", new HashSet<String>());
@@ -121,8 +122,6 @@ public class Preferences extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		getFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
-
-
 	}
 
 	@Override
@@ -177,6 +176,7 @@ public class Preferences extends Activity {
 	}
 
 	public String getAppAfterNotified() {
+		MainInterface.log(prefs.getString("activity_after_wake", "activity after wake"));
 		return prefs.getString("activity_after_wake", "");
 	}
 

@@ -24,8 +24,6 @@ public class FirstStart extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		MainInterface.log("asdf");
-
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.first_start);
 
