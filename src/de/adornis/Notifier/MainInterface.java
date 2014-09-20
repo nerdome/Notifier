@@ -176,8 +176,6 @@ public class MainInterface extends Activity {
     public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		MainInterface.log("Starting MainInterface...");
-
 		try {
 			prefs = new Preferences();
 		} catch (UserNotFoundException e) {

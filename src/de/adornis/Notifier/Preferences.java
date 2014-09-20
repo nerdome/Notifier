@@ -35,7 +35,6 @@ public class Preferences extends Activity {
 		try {
 			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""), prefs.getString("domain", ""));
 		} catch (InvalidJIDException e) {
-			MainInterface.log("application user hasn't been set yet");
 			throw new UserNotFoundException("application user");
 		}
 
@@ -67,7 +66,7 @@ public class Preferences extends Activity {
 			try {
 				initialize();
 			} catch (UserNotFoundException e) {
-				MainInterface.log("NO APP USER");
+				MainInterface.log("no app user yet, initiating firststart activity");
 				Notifier.getContext().startActivity(new Intent(Notifier.getContext(), FirstStart.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 				throw e;
 			}
@@ -84,8 +83,6 @@ public class Preferences extends Activity {
 	}
 
 	public static void close() {
-		MainInterface.log("saving...");
-
 		if(appUser != null) {
 			prefs.edit().putString("user", appUser.getUsername())
 					.putString("password", appUser.getPassword())

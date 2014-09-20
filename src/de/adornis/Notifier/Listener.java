@@ -44,7 +44,6 @@ public class Listener extends Service {
 			fetchInitialOnlineStates(intent.getStringExtra("JID") == null ? "" : intent.getStringExtra("JID"));
 		}
 	};
-	private boolean initiated = false;
 
 	public void fetchInitialOnlineStates(String JID) {
 		for (RosterEntry current : conn.getRoster().getEntries()) {
@@ -76,8 +75,6 @@ public class Listener extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-	    MainInterface.log("onStartCommand");
-
 	    registerReceiver(credentialsReceiver, new IntentFilter(Notifier.CREDENTIALS));
 	    registerReceiver(userEventReceiver, new IntentFilter(Notifier.USER_EVENT));
 
@@ -100,13 +97,12 @@ public class Listener extends Service {
 
 	@Override
     public void onDestroy() {
-		MainInterface.log("onDestroy, prefs: " + (prefs != null ? "set" : "not set"));
 		disconnect();
         super.onDestroy();
     }
 
 	public void attemptConnect() {
-		MainInterface.log("attemptConnect, prefs: " + (prefs != null ? "set" : "not set"));
+		MainInterface.log(">> connecting");
 		prefs.setConnected(CONNECTING);
 		if(listener != null) {
 			if(listener.getStatus().equals(AsyncTask.Status.FINISHED)) {
@@ -130,7 +126,7 @@ public class Listener extends Service {
 	}
 
     private void disconnect(final boolean restart) {
-	    MainInterface.log("disconnect, prefs: " + (prefs != null ? "set" : "not set"));
+	    MainInterface.log("<< disconnecting");
         (new Thread(new Runnable() {
             @Override
             public void run() {
@@ -208,8 +204,6 @@ public class Listener extends Service {
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			MainInterface.log("im here");
-
 			conn = new XMPPTCPConnection(MainInterface.getConfig(prefs.getAppUser().getDomain(), 5222));
 			try {
 				conn.getRoster().addRosterListener(new RosterListener() {

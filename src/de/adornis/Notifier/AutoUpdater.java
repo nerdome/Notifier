@@ -26,7 +26,6 @@ public class AutoUpdater {
 	}
 
 	public void check() throws IOException {
-		MainInterface.log("checking");
 		VersionChecker vs = new VersionChecker(true);
 		vs.execute();
 
@@ -36,8 +35,6 @@ public class AutoUpdater {
 	}
 
 	public int getVersion() throws IOException {
-		MainInterface.log("getting version");
-
 		VersionChecker vs = new VersionChecker(false);
 		vs.execute();
 
@@ -56,8 +53,6 @@ public class AutoUpdater {
 	}
 
 	public void update() {
-		MainInterface.log("updating");
-
 		new AsyncTask<Void, IOException, Void>() {
 
 			@Override
@@ -74,7 +69,6 @@ public class AutoUpdater {
 					File tempFile = c.getExternalCacheDir();
 					String tempDir = tempFile.getPath();
 					outputFilePath = tempDir + "Notifier_update_" + futureVersion + ".apk";
-					MainInterface.log(outputFilePath);
 					OutputStream os = new FileOutputStream(outputFilePath);
 
 					byte data[] = new byte[4096];
@@ -82,7 +76,6 @@ public class AutoUpdater {
 					while((count = is.read(data)) != -1) {
 						os.write(data, 0, count);
 					}
-					MainInterface.log("done downloading");
 				} catch (MalformedURLException e1) {
 					MainInterface.log("url malformed in auto updater, should never happen because it's hardcoded");
 					// hardcoded, shouldn't happen
@@ -101,7 +94,6 @@ public class AutoUpdater {
 
 			@Override
 			protected void onPostExecute(Void aVoid) {
-				MainInterface.log("starting the update intent");
 				Intent intent = new Intent(Intent.ACTION_VIEW);
 				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
