@@ -67,6 +67,11 @@ public class AutoUpdater {
 
 					Context c = Notifier.getContext();
 					File tempFile = c.getExternalCacheDir();
+					if(tempFile == null) {
+						MainInterface.log("FATAL - couldn't retrieve getExternalCacheDir()");
+						e = new IOException();
+						return null;
+					}
 					String tempDir = tempFile.getPath();
 					outputFilePath = tempDir + "Notifier_update_" + futureVersion + ".apk";
 					OutputStream os = new FileOutputStream(outputFilePath);
