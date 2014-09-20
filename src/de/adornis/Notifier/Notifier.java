@@ -2,6 +2,7 @@ package de.adornis.Notifier;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.PackageManager;
 
 public class Notifier extends Application {
 
@@ -16,10 +17,20 @@ public class Notifier extends Application {
 	public final static String INVITATION = "de.adornis.Notifier.INVITATION";
 
 	private static Notifier self;
+	private static int version;
+
+	public static int getVersion() {
+		return version;
+	}
 
 	@Override
 	public void onCreate() {
 		self = this;
+		try {
+			version = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+		} catch (PackageManager.NameNotFoundException e) {
+			// lawl this doesn't exist... yes it does -.-
+		}
 	}
 
 	public static Context getContext() {

@@ -25,6 +25,8 @@
                             android:defaultValue="true" />
     </PreferenceCategory>
     <PreferenceCategory android:title="App Actions">
+        <de.adornis.Notifier.UpdatePreference android:title="Force Update"
+                                              android:summary="Force an update for testing purposes" />
         <de.adornis.Notifier.ResetPreference android:title="Reset app"
                                              android:summary="Reset all user data" />
     </PreferenceCategory>

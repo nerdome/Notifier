@@ -16,14 +16,10 @@ import java.util.concurrent.ExecutionException;
 
 public class AutoUpdater {
 
-	private int currentVersion = 0;
+	private int currentVersion = Notifier.getVersion();
 	private int futureVersion = 0;
 	private IOException e;
 	private String outputFilePath = "";
-
-	public AutoUpdater(int currentVersion) {
-		this.currentVersion = currentVersion;
-	}
 
 	public void check() throws IOException {
 		VersionChecker vs = new VersionChecker(true);

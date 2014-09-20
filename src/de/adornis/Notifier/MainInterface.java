@@ -193,10 +193,8 @@ public class MainInterface extends Activity {
 		}
 
 		try {
-			updater = new AutoUpdater(getPackageManager().getPackageInfo(getPackageName(), 0).versionCode);
+			updater = new AutoUpdater();
 			updater.check();
-		} catch (PackageManager.NameNotFoundException e) {
-			// lawl this doesn't exist... yes it does -.-
 		} catch (IOException e) {
 			MainInterface.log("failed to fetch version");
 		}
