@@ -236,7 +236,7 @@ public class MainInterface extends Activity {
 		        AlertDialog.Builder db = new AlertDialog.Builder(MainInterface.this);
 		        db.setTitle("Confirm");
 		        db.setMessage("Do you really want to remove " + prefs.getUsers().get(position).getJID() + " from your contact list?");
-		        db.setNegativeButton("Don't remove", new DialogInterface.OnClickListener() {
+		        db.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 			        @Override
 			        public void onClick(DialogInterface dialog, int which) {
 				        dialog.dismiss();

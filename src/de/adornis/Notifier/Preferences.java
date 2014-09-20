@@ -130,7 +130,7 @@ public class Preferences extends Activity {
 
 	public void addUser(String user, String nick) throws InvalidJIDException {
 		if(findUser(user) == null) {
-			users.add(new TargetUser(user, user.substring(0, user.indexOf("@"))));
+			users.add(new TargetUser(user, nick));
 			c.sendBroadcast(new Intent(Notifier.USER_EVENT));
 		}
 	}
