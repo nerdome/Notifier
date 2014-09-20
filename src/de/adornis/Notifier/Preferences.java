@@ -156,6 +156,10 @@ public class Preferences extends Activity {
 		return prefs.getBoolean("start_after_boot", false);
 	}
 
+	public String getAppAfterNotified() {
+		return prefs.getString("start_after_boot", "");
+	}
+
 	public void setConnected(int running) {
 		listenerRunning = running;
 		c.sendBroadcast(new Intent(Notifier.SERVICE));

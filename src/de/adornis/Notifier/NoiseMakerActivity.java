@@ -115,7 +115,13 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
     protected void onDestroy() {
         super.onDestroy();
 
-	    String packg = PreferenceManager.getDefaultSharedPreferences(this).getString("activity_after_wake", "");
+	    String packg;
+	    try {
+		    packg = (new Preferences()).getAppAfterNotified();
+	    } catch (UserNotFoundException e) {
+		    MainInterface.log("Couldn't initiate preferences in NoiseMakerActivity onDestroy, setting package to open empty");
+		    packg = "";
+	    }
 	    if(packg.equals("")) {
 		    // open main activity
 		    Intent uiIntent = new Intent(this, MainInterface.class);
