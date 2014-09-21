@@ -332,15 +332,18 @@ public class Listener extends Service {
 		}
 
 		private void returnMessage(Message message) {
-			message.setBody("This message should probably not have landed in the NOTIFIER_RECEIVER resource, am I right? " + message.getBody());
-			MainInterface.log("returning message to " + message.getFrom().substring(0, message.getFrom().indexOf("/")));
-			message.setTo(message.getFrom());
-			message.setFrom(prefs.getAppUser().getJID() + "/NOTIFIER_RECEIVER");
-			try {
-				conn.sendPacket(message);
-			} catch (SmackException.NotConnectedException e) {
-				MainInterface.log("couldn't send message back in returnMessage() in Listener");
-				e.printStackTrace();
+			Message out = new Message(message.getFrom());
+			out.setBody("This message should probably not have landed in the NOTIFIER_RECEIVER resource, am I right? \"{" + message.getBody() + " }\"");
+			MainInterface.log("returning message to " + out.getTo());
+			if(!out.getTo().startsWith(prefs.getAppUser().getJID())) {
+				try {
+					conn.sendPacket(out);
+				} catch (SmackException.NotConnectedException e) {
+					MainInterface.log("couldn't send message back in returnMessage() in Listener");
+					e.printStackTrace();
+				}
+			} else {
+				MainInterface.log("Not sending back to myself");
 			}
 		}
 	}
