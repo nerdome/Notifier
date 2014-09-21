@@ -27,47 +27,53 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 
     AsyncTask<Integer, Void, Void> noiseMaker = new AsyncTask<Integer, Void, Void>() {
 
+	    Vibrator vib;
+	    PowerManager.WakeLock wl;
+	    KeyguardManager.KeyguardLock kl;
+	    Camera cam;
+	    Camera.Parameters cp;
+	    SoundPool sp;
+	    AudioManager am;
+	    int oldVolume;
+
         @Override
         protected Void doInBackground(Integer... duration) {
 
 	        dur = duration[0];
 
-            Vibrator vib = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
+            vib = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
             PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-	        @SuppressWarnings("deprecation")
-            PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "");
+            wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "");
             KeyguardManager km = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
-	        @SuppressWarnings("deprecation")
-            KeyguardManager.KeyguardLock kl = km.newKeyguardLock("ALARM_CLOCK");
-	        Camera cam = Camera.open();
+            kl = km.newKeyguardLock("ALARM_CLOCK");
+	        cam = Camera.open();
 	        if(getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
-		        Camera.Parameters p = cam.getParameters();
-		        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-		        cam.setParameters(p);
+		        cp = cam.getParameters();
+		        cp.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+		        cam.setParameters(cp);
 	        }
-	        SoundPool sp = new SoundPool(1, AudioManager.STREAM_ALARM, 100);
+	        sp = new SoundPool(1, AudioManager.STREAM_ALARM, 100);
 	        sp.setOnLoadCompleteListener(NoiseMakerActivity.this);
 	        sp.load(getApplicationContext(), R.raw.toyphone_dialling, 1);
-	        AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-	        int oldVolume = mgr.getStreamVolume(AudioManager.STREAM_ALARM);
-	        mgr.setStreamVolume(AudioManager.STREAM_ALARM, mgr.getStreamMaxVolume(AudioManager.STREAM_ALARM), AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+	        am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+	        oldVolume = am.getStreamVolume(AudioManager.STREAM_ALARM);
+	        am.setStreamVolume(AudioManager.STREAM_ALARM, am.getStreamMaxVolume(AudioManager.STREAM_ALARM), AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 
 	        wl.acquire();
             kl.disableKeyguard();
 
             NoiseMakerActivity.this.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    WindowManager.LayoutParams layout = getWindow().getAttributes();
-                    layout.screenBrightness = 1F;
-                    getWindow().setAttributes(layout);
-                }
+	            @Override
+	            public void run() {
+		            WindowManager.LayoutParams layout = getWindow().getAttributes();
+		            layout.screenBrightness = 1F;
+		            getWindow().setAttributes(layout);
+	            }
             });
 
-            vib.vibrate(dur * 1000);
-
             Random rnd = new Random();
-            for(int i = 0; i < dur * 1000; i += 100) {
+            for(int i = 0; i < dur * 1000 && !isCancelled(); i += 100) {
+	            vib.vibrate(100);
                 final int color = Color.argb(255, 160 + rnd.nextInt(96), 160 + rnd.nextInt(96), 160 + rnd.nextInt(96));
                 NoiseMakerActivity.this.runOnUiThread(new Runnable() {
                     @Override
@@ -75,24 +81,30 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
                         findViewById(R.id.coloredBackground).setBackgroundColor(color);
                     }
                 });
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    MainInterface.log("Sleep interrupted in NoiseMaker --> onCreate()" + e.getMessage());
-                }
+	            try {
+		            Thread.sleep(100);
+	            } catch (InterruptedException e) {
+		            e.printStackTrace();
+	            }
             }
 
-            wl.release();
-            kl.reenableKeyguard();
-	        if(getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
-		        cam.release();
-	        }
-	        mgr.setStreamVolume(AudioManager.STREAM_ALARM, oldVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-
-            NoiseMakerActivity.this.finish();
+	        stop();
 
             return null;
         }
+
+	    private void stop() {
+		    wl.release();
+		    kl.reenableKeyguard();
+		    if(getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
+			    cam.release();
+		    }
+		    sp.release();
+		    sp.stop(AudioManager.STREAM_ALARM);
+		    am.setStreamVolume(AudioManager.STREAM_ALARM, oldVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+
+		    NoiseMakerActivity.this.finish();
+	    }
     };
 
     @Override
@@ -127,6 +139,8 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
     protected void onDestroy() {
         super.onDestroy();
 
+	    noiseMaker.cancel(false);
+
 	    Intent startIntent = null;
 	    try {
 		    String packg = (new Preferences()).getAppAfterNotified();
@@ -149,6 +163,6 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 
 	@Override
 	public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-		soundPool.play(sampleId, 1.0F, 1.0F, 1, dur / soundDuration - 1, 1);
+		soundPool.play(sampleId, 1.0F, 1.0F, 1, -1, 1);
 	}
 }
