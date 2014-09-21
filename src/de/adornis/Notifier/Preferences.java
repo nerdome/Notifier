@@ -109,7 +109,6 @@ public class Preferences extends Activity {
 		try {
 			return users.get(getUserId(JID));
 		} catch (UserNotFoundException e) {
-			MainInterface.log(e.getMessage());
 			return null;
 		}
 	}

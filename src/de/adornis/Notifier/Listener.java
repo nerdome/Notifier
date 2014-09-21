@@ -202,85 +202,103 @@ public class Listener extends Service {
 
 	private class ListenerThread extends AsyncTask<Void, String, Void> {
 
+		public void connect() throws IOException, XMPPException, SmackException {
+			conn.getRoster().addRosterListener(new RosterListener() {
+				@Override
+				public void entriesAdded(Collection<String> addresses) {
+
+				}
+
+				@Override
+				public void entriesUpdated(Collection<String> addresses) {
+
+				}
+
+				@Override
+				public void entriesDeleted(Collection<String> addresses) {
+
+				}
+
+				@Override
+				public void presenceChanged(Presence presence) {
+					try {
+						prefs.getUser(presence.getFrom().substring(0, presence.getFrom().indexOf("/"))).updatePresence(presence);
+					} catch (UserNotFoundException ignore) {
+						// user wasn't found, ignoring
+					}
+				}
+			});
+
+			prefs.setConnected(CONNECTING);
+
+			conn.connect();
+			conn.login(prefs.getAppUser().getUsername(), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
+			conn.getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
+			conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
+
+			if(conn.isConnected()) {
+				prefs.setConnected(CONNECTED);
+			}
+
+			fetchInitialOnlineStates("");
+
+			ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
+				@Override
+				public void chatCreated(Chat chat, boolean createdLocally) {
+					if (!createdLocally) {
+						chat.addMessageListener(new MessageListener() {
+							@Override
+							public void processMessage(Chat chat, Message message) {
+								Map<String, Object> props = JivePropertiesManager.getProperties(message);
+								if (props.containsKey("ALARM")) {
+									publishProgress((String) props.get("ALARM"));
+								} else if(props.containsKey("PING")) {
+									if(props.get("PING").equals("request")) {
+										Message msg = new Message();
+										msg.setTo(message.getFrom());
+										JivePropertiesManager.addProperty(msg, "PING", "reply");
+										try {
+											conn.sendPacket(msg);
+										} catch (SmackException.NotConnectedException e) {
+											MainInterface.log("Couldn't ping back because there was a connection issue");
+											e.printStackTrace();
+										}
+									} else if(props.get("PING").equals("reply")) {
+										try {
+											prefs.getUser(message.getFrom().substring(0, message.getFrom().indexOf("/"))).incomingPing();
+										} catch (UserNotFoundException e) {
+											MainInterface.log("User " + e.getUser() + " pinged back but isn't on the list");
+										}
+									}
+								} else {
+									returnMessage(message);
+								}
+							}
+						});
+					}
+				}
+			});
+		}
+
 		@Override
 		protected Void doInBackground(Void... params) {
 			conn = new XMPPTCPConnection(MainInterface.getConfig(prefs.getAppUser().getDomain(), 5222));
 			try {
-				conn.getRoster().addRosterListener(new RosterListener() {
-					@Override
-					public void entriesAdded(Collection<String> addresses) {
-
-					}
-
-					@Override
-					public void entriesUpdated(Collection<String> addresses) {
-
-					}
-
-					@Override
-					public void entriesDeleted(Collection<String> addresses) {
-
-					}
-
-					@Override
-					public void presenceChanged(Presence presence) {
-						try {
-							prefs.getUser(presence.getFrom().substring(0, presence.getFrom().indexOf("/"))).updatePresence(presence);
-						} catch (UserNotFoundException e) {
-							MainInterface.log("User " + e.getUser() + " wasn't found");
-						}
-					}
-				});
-
-				conn.connect();
-				conn.login(prefs.getAppUser().getUsername(), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
-				conn.getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
-				conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
-
-				if(conn.isConnected()) {
-					prefs.setConnected(CONNECTED);
+				connect();
+			} catch (SmackException.NoResponseException e) {
+				MainInterface.log("NoResponseException while connecting in Listener " + e.getMessage());
+				// probably got a timeout, try with bigger timeout
+				conn = new XMPPTCPConnection(MainInterface.getConfig(prefs.getAppUser().getDomain(), 5222));
+				MainInterface.log("Retrying with package timeout of " + conn.getPacketReplyTimeout() * 2 + " instead of " + conn.getPacketReplyTimeout());
+				conn.setPacketReplyTimeout(conn.getPacketReplyTimeout() * 2);
+				try {
+					connect();
+				} catch (SmackException.NoResponseException e1) {
+					MainInterface.log("Couldn't log in with longer timeout either, giving up.");
+					e1.printStackTrace();
+				} catch (Exception ignore) {
+					MainInterface.log("Some other error happened now o.0");
 				}
-
-				fetchInitialOnlineStates("");
-
-				ChatManager.getInstanceFor(conn).addChatListener(new ChatManagerListener() {
-					@Override
-					public void chatCreated(Chat chat, boolean createdLocally) {
-						if (!createdLocally) {
-							chat.addMessageListener(new MessageListener() {
-								@Override
-								public void processMessage(Chat chat, Message message) {
-									Map<String, Object> props = JivePropertiesManager.getProperties(message);
-									if (props.containsKey("ALARM")) {
-										publishProgress((String) props.get("ALARM"));
-									} else if(props.containsKey("PING")) {
-										if(props.get("PING").equals("request")) {
-											Message msg = new Message();
-											msg.setTo(message.getFrom());
-											JivePropertiesManager.addProperty(msg, "PING", "reply");
-											try {
-												conn.sendPacket(msg);
-											} catch (SmackException.NotConnectedException e) {
-												MainInterface.log("Couldn't ping back because there was a connection issue");
-												e.printStackTrace();
-											}
-										} else if(props.get("PING").equals("reply")) {
-											try {
-												prefs.getUser(message.getFrom().substring(0, message.getFrom().indexOf("/"))).incomingPing();
-											} catch (UserNotFoundException e) {
-												MainInterface.log("User " + e.getUser() + " pinged back but isn't on the list");
-											}
-										}
-									} else {
-										returnMessage(message);
-									}
-								}
-							});
-						}
-					}
-				});
-			} catch (SmackException e) {
-				MainInterface.log("SmackException while connecting in Listener " + e.getMessage());
 				getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
 				disconnect();
 			} catch (IOException e) {
@@ -289,6 +307,14 @@ public class Listener extends Service {
 				disconnect();
 			} catch (XMPPException e) {
 				MainInterface.log("XMPPException while connecting in Listener " + e.getMessage());
+				getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
+				disconnect();
+			} catch (SmackException.NotConnectedException e) {
+				MainInterface.log("NotConnectedException while connecting in Listener " + e.getMessage());
+				getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
+				disconnect();
+			} catch (SmackException e) {
+				MainInterface.log("General SmackException while connecting in Listener " + e.getMessage());
 				getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
 				disconnect();
 			}
