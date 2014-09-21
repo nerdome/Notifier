@@ -294,10 +294,23 @@ public class Listener extends Service {
 				try {
 					connect();
 				} catch (SmackException.NoResponseException e1) {
-					MainInterface.log("Couldn't log in with longer timeout either, giving up.");
-					e1.printStackTrace();
+					MainInterface.log("NoResponseException while connecting in Listener " + e.getMessage());
+					// probably got a timeout, try with bigger timeout
+					conn = new XMPPTCPConnection(MainInterface.getConfig(prefs.getAppUser().getDomain(), 5222));
+					MainInterface.log("Retrying with package timeout of " + conn.getPacketReplyTimeout() * 2 + " instead of " + conn.getPacketReplyTimeout());
+					conn.setPacketReplyTimeout(conn.getPacketReplyTimeout() * 2);
+					try {
+						connect();
+					} catch (SmackException.NoResponseException e2) {
+						MainInterface.log("Couldn't log in with longer timeout either, giving up.");
+						e2.printStackTrace();
+					} catch (Exception ignore) {
+						MainInterface.log("Some other error happened now o.0");
+					}
+					getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
+					disconnect();
 				} catch (Exception ignore) {
-					MainInterface.log("Some other error happened now o.0");
+					MainInterface.log("Some other error hap SmackException while connecting in Listener null #29 pened now o.0");
 				}
 				getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
 				disconnect();
