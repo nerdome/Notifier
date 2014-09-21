@@ -222,21 +222,21 @@ public class MainInterface extends Activity {
 			e.printStackTrace();
 		}
 		targetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-	        @Override
-	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		        try {
-			        if(currentTarget != null) {
-				        targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.JID).setVisibility(View.GONE);
-			        }
-		        } catch (UserNotFoundException e) {
-			        MainInterface.log(e.getMessage());
-		        }
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				try {
+					if (currentTarget != null) {
+						targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.JID).setVisibility(View.GONE);
+					}
+				} catch (UserNotFoundException e) {
+					MainInterface.log(e.getMessage());
+				}
 
-		        currentTarget = (TargetUser) targetListView.getAdapter().getItem(position);
-		        view.findViewById(R.id.JID).setVisibility(View.VISIBLE);
-		        notifyButton.setEnabled(true);
-	        }
-        });
+				currentTarget = (TargetUser) targetListView.getAdapter().getItem(position);
+				view.findViewById(R.id.JID).setVisibility(View.VISIBLE);
+				notifyButton.setEnabled(true);
+			}
+		});
         targetListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 	        @Override
 	        public boolean onItemLongClick(AdapterView<?> parent, final View view, final int position, long id) {
@@ -252,7 +252,6 @@ public class MainInterface extends Activity {
 		        db.setPositiveButton("Remove", new DialogInterface.OnClickListener() {
 			        @Override
 			        public void onClick(DialogInterface dialog, int which) {
-
 				        try {
 					        prefs.delUser(prefs.getUsers().get(position).getJID());
 				        } catch (UserNotFoundException e) {
@@ -269,7 +268,6 @@ public class MainInterface extends Activity {
 		        return true;
 	        }
         });
-        targetListView.setSelection(1);
 
 		notifyButton.setEnabled(false);
         notifyButton.setOnClickListener(new View.OnClickListener() {

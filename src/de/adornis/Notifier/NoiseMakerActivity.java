@@ -13,6 +13,7 @@ import android.media.MediaMetadataRetriever;
 import android.media.SoundPool;
 import android.net.Uri;
 import android.os.*;
+import android.provider.MediaStore;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -47,8 +48,11 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 	        SoundPool sp = new SoundPool(1, AudioManager.STREAM_ALARM, 100);
 	        sp.setOnLoadCompleteListener(NoiseMakerActivity.this);
 	        sp.load(getApplicationContext(), R.raw.toyphone_dialling, 1);
+	        AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+	        int oldVolume = mgr.getStreamVolume(AudioManager.STREAM_ALARM);
+	        mgr.setStreamVolume(AudioManager.STREAM_ALARM, mgr.getStreamMaxVolume(AudioManager.STREAM_ALARM), AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 
-            wl.acquire();
+	        wl.acquire();
             kl.disableKeyguard();
 
             NoiseMakerActivity.this.runOnUiThread(new Runnable() {
@@ -83,6 +87,7 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 	        if(getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
 		        cam.release();
 	        }
+	        mgr.setStreamVolume(AudioManager.STREAM_ALARM, oldVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 
             NoiseMakerActivity.this.finish();
 
@@ -116,9 +121,6 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
         noiseMaker.execute(getIntent().getIntExtra("DURATION", 3));
 
         ((TextView) findViewById(R.id.message)).setText(getIntent().getStringExtra("MESSAGE"));
-
-        MainInterface.log("NOISE NOISE NOISE");
-
     }
 
     @Override
@@ -147,7 +149,6 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 
 	@Override
 	public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-		int streamID = soundPool.play(sampleId, 1, 1, 1, dur / soundDuration - 1, 1);
-		soundPool.setVolume(streamID, 1.0F, 1.0F);
+		soundPool.play(sampleId, 1.0F, 1.0F, 1, dur / soundDuration - 1, 1);
 	}
 }
