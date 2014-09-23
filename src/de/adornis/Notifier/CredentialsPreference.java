@@ -7,6 +7,7 @@ import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,8 @@ public class CredentialsPreference extends Preference {
 	public CredentialsPreference(Context context, AttributeSet attrs) {
 		super(context, attrs);
 
+		Log.e("contructor CredentialsPreferences", "beginning after super(context,attrs);");
+
 		c = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(c);
 
@@ -41,6 +44,40 @@ public class CredentialsPreference extends Preference {
 		passwordEditText = (EditText) v.findViewById(R.id.password);
 		domainEditText = (EditText) v.findViewById(R.id.domain);
 		visiblePasswordCheckBox = (CheckBox) v.findViewById(R.id.visiblePassword);
+
+		//own code
+
+		userEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				Log.e("onFocusChange", "bluub");
+				sp.edit().putString("user", userEditText.getText().toString()).apply();
+			}
+		});
+
+//		v.setId(android.R.id.widget_frame);
+
+		String tmpUserEditText = userEditText.getText() == null ? userEditText.getText().toString() : "defaultValueUserFromField";
+		Log.e("userEditText from Field beginning of onCreateView after Inflator", tmpUserEditText);
+		Log.e("userEditText from SP beginning of onCreateView after Inflator", sp.getString("user", "defaultValueUserFromSP"));
+		userEditText.setText(userEditText.getText());
+
+		String user;
+		String password;
+		String domain;
+
+
+		user = sp.getString("user", "");
+		password = sp.getString("password", "");
+		domain = sp.getString("domain", "");
+
+
+		userEditText.setText(sp.getString("user", ""));
+		passwordEditText.setText(sp.getString("password", ""));
+		domainEditText.setText(sp.getString("domain", ""));
+		//end own code
+
+		super.onCreateView(parent);
 
 		return v;
 	}
