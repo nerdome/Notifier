@@ -2,15 +2,18 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:id="@+id/sort">
-        <item android:id="@+id/sort_alphabetically"
-              android:title="Sort A->Z"
-              android:showAsAction="ifRoom" />
-        <item android:id="@+id/sort_status"
-              android:title="Sort by Status"
-              android:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/sort_alphabetically"
+            android:showAsAction="ifRoom"
+            android:title="Sort A->Z" />
+        <item
+            android:id="@+id/sort_status"
+            android:showAsAction="ifRoom"
+            android:title="Sort by Status" />
     </group>
-    <item android:id="@+id/settings"
-        android:title="Settings"
+    <item
+        android:id="@+id/settings"
+        android:icon="@android:drawable/ic_menu_preferences"
         android:showAsAction="ifRoom"
-        android:icon="@android:drawable/ic_menu_preferences"/>
+        android:title="Settings" />
 </menu>

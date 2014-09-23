@@ -2,80 +2,80 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:padding="20dp">
+    android:padding="20dp">
 
     <TextView
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Welcome!"
-        android:id="@+id/textView"
         android:layout_gravity="center_horizontal"
+        android:text="Welcome!"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="54dp" />
 
     <TextView
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Please enter your XMPP account credentials here you want to use to be notified"
-        android:id="@+id/textView2"
         android:layout_gravity="center_horizontal"
-        android:singleLine="false"
-        android:textIsSelectable="false"
-        android:phoneNumber="false"
+        android:gravity="center_horizontal"
         android:password="false"
-        android:gravity="center_horizontal" />
+        android:phoneNumber="false"
+        android:singleLine="false"
+        android:text="Please enter your XMPP account credentials here you want to use to be notified"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textIsSelectable="false" />
 
     <Space
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="40dp"
-        android:longClickable="false" />
+        android:longClickable="false"
+        android:minHeight="40dp" />
 
     <fragment
+        android:id="@+id/credentials"
+        android:name="de.adornis.Notifier.CredentialsFragment"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:name="de.adornis.Notifier.CredentialsFragment"
-        android:id="@+id/credentials"
         tools:layout="@layout/credentials_dialog" />
 
     <Button
+        android:id="@+id/verify"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Let's go!"
-        android:id="@+id/verify" />
+        android:text="Let's go!" />
 
     <Space
+        android:id="@+id/space"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="40dp"
-        android:id="@+id/space"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:minHeight="40dp" />
 
     <ProgressBar
+        android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
         android:layout_gravity="center_horizontal"
         android:visibility="invisible" />
 
     <Space
+        android:id="@+id/space2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="40dp"
-        android:id="@+id/space2"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:minHeight="40dp" />
 
     <TextView
+        android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:id="@+id/statusText"
         android:layout_gravity="center_horizontal"
-        android:visibility="invisible"
-        android:text="xxx" />
+        android:text="xxx"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="invisible" />
 </LinearLayout>

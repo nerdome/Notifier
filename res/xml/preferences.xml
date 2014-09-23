@@ -2,27 +2,32 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="User Information">
-        <de.adornis.Notifier.CredentialsPreference android:key="credentials"
-                                                   android:title="Change XMPP Credentials"
-                                                   android:summary="Switch between accounts here" />
+        <de.adornis.Notifier.CredentialsPreference
+            android:key="credentials"
+            android:summary="Switch between accounts here"
+            android:title="Change XMPP Credentials" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Noise Maker Behavior">
-        <EditTextPreference android:key="activity_after_wake"
-                            android:title="App After Wake"
-                            android:summary="When you have been notified, Notifier will try to open the app in this package"
-                            android:defaultValue="" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:key="activity_after_wake"
+            android:summary="When you have been notified, Notifier will try to open the app in this package"
+            android:title="App After Wake" />
     </PreferenceCategory>
     <PreferenceCategory android:title="General Behavior">
-        <CheckBoxPreference android:key="start_after_boot"
-                            android:title="Start after boot"
-                            android:summary="If you enabled receiving notifications before booting your phone, it will be reactivated if you check this"
-                            android:defaultValue="true" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="start_after_boot"
+            android:summary="If you enabled receiving notifications before booting your phone, it will be reactivated if you check this"
+            android:title="Start after boot" />
     </PreferenceCategory>
     <PreferenceCategory android:title="App Actions">
-        <Preference android:key="update"
-                    android:title="Force Update"
-                    android:summary="Force an update for testing purposes" />
-        <de.adornis.Notifier.ResetPreference android:title="Reset app"
-                                             android:summary="Reset all user data" />
+        <Preference
+            android:key="update"
+            android:summary="Force an update for testing purposes"
+            android:title="Force Update" />
+        <de.adornis.Notifier.ResetPreference
+            android:summary="Reset all user data"
+            android:title="Reset app" />
     </PreferenceCategory>
 </PreferenceScreen>

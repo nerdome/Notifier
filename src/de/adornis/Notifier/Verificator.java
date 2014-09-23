@@ -13,6 +13,7 @@ public class Verificator extends AsyncTask<String, Void, Boolean> {
 	String password;
 	String domain;
 	OnVerificatorListener listener;
+
 	public Verificator(OnVerificatorListener listener) {
 		this.listener = listener;
 	}

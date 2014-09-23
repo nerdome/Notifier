@@ -2,7 +2,6 @@ package de.adornis.Notifier;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
