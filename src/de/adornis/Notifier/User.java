@@ -15,7 +15,7 @@ class User implements Serializable {
 
 	public User(String JID) throws InvalidJIDException {
 		this.JID = JID;
-		if(JID.contains("@") && JID.contains(".")) {
+		if (JID.contains("@") && JID.contains(".")) {
 			username = JID.substring(0, JID.indexOf("@"));
 			domain = JID.substring(JID.indexOf("@") + 1);
 		} else {
@@ -24,7 +24,7 @@ class User implements Serializable {
 	}
 
 	public User(String user, String domain) throws InvalidJIDException {
-		if(domain.contains(".")) {
+		if (domain.contains(".")) {
 			this.username = user;
 			this.domain = domain;
 			this.JID = user + "@" + domain;

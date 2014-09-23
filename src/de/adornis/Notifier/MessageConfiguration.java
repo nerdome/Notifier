@@ -34,7 +34,7 @@ public class MessageConfiguration {
 		countdownView.post(new Runnable() {
 			@Override
 			public void run() {
-				if(number != 0) {
+				if (number != 0) {
 					countdownView.setText(number + "");
 				} else {
 					countdownView.setText("");

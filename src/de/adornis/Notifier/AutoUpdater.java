@@ -25,7 +25,7 @@ public class AutoUpdater {
 		VersionChecker vs = new VersionChecker(true);
 		vs.execute();
 
-		if(e != null) {
+		if (e != null) {
 			throw e;
 		}
 	}
@@ -34,7 +34,7 @@ public class AutoUpdater {
 		VersionChecker vs = new VersionChecker(false);
 		vs.execute();
 
-		if(e != null) {
+		if (e != null) {
 			throw e;
 		}
 
@@ -63,7 +63,7 @@ public class AutoUpdater {
 
 					Context c = Notifier.getContext();
 					File tempFile = c.getExternalCacheDir();
-					if(tempFile == null) {
+					if (tempFile == null) {
 						MainInterface.log("FATAL - couldn't retrieve getExternalCacheDir()");
 						outputFilePath = "";
 						e = new IOException();
@@ -75,7 +75,7 @@ public class AutoUpdater {
 
 					byte data[] = new byte[4096];
 					int count;
-					while((count = is.read(data)) != -1) {
+					while ((count = is.read(data)) != -1) {
 						os.write(data, 0, count);
 					}
 				} catch (MalformedURLException e1) {
@@ -96,7 +96,7 @@ public class AutoUpdater {
 
 			@Override
 			protected void onPostExecute(Void aVoid) {
-				if(!outputFilePath.equals("")) {
+				if (!outputFilePath.equals("")) {
 					Intent intent = new Intent(Intent.ACTION_VIEW);
 					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 

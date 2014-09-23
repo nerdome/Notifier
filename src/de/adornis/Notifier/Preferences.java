@@ -7,7 +7,10 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,6 +33,18 @@ public class Preferences extends Activity {
 
 	private static boolean initialized = false;
 
+	public Preferences() throws UserNotFoundException {
+		if (!initialized) {
+			try {
+				initialize();
+			} catch (UserNotFoundException e) {
+				MainInterface.log("no app user yet, initiating firststart activity");
+				Notifier.getContext().startActivity(new Intent(Notifier.getContext(), FirstStart.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+				throw e;
+			}
+		}
+	}
+
 	// must be called before making a pref object
 	public static void initialize() throws UserNotFoundException {
 		prefs = PreferenceManager.getDefaultSharedPreferences(c);
@@ -44,13 +59,13 @@ public class Preferences extends Activity {
 		}
 
 		try {
-			if(!usersFile.createNewFile()) {
+			if (!usersFile.createNewFile()) {
 				try {
 					ObjectInputStream ois = new ObjectInputStream(c.openFileInput("targetUsers"));
 					Object in = ois.readObject();
 					users = (ArrayList<TargetUser>) in;
 					ois.close();
-					for(TargetUser user : users) {
+					for (TargetUser user : users) {
 						user.updatePresence(null);
 					}
 				} catch (IOException e) {
@@ -66,15 +81,55 @@ public class Preferences extends Activity {
 		initialized = true;
 	}
 
-	public Preferences() throws UserNotFoundException {
-		if(!initialized) {
-			try {
-				initialize();
-			} catch (UserNotFoundException e) {
-				MainInterface.log("no app user yet, initiating firststart activity");
-				Notifier.getContext().startActivity(new Intent(Notifier.getContext(), FirstStart.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-				throw e;
+	public static void close() {
+		if (appUser != null) {
+			prefs.edit().putString("user", appUser.getUsername()).putString("password", appUser.getPassword()).putString("domain", appUser.getDomain()).putInt("listener_running", Listener.DISCONNECTED).putStringSet("ignored_roster_users", ignoredRosterUsers).commit();
+		}
+
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(c.openFileOutput("targetUsers", MODE_PRIVATE));
+			oos.writeObject(users);
+			oos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static boolean sortUsers(int mode) {
+		int i;
+		int j;
+		TargetUser newExtrema;
+		int newExtremaNumber = -1;
+		boolean reverse = !compare(users.get(0), users.get(users.size() - 1), mode, false);
+		for (i = 0; i < users.size() - 1; i++) {
+			newExtrema = null;
+			newExtremaNumber = -1;
+			for (j = i + 1; j < users.size(); j++) {
+				if (compare(users.get(i), users.get(j), mode, reverse)) {
+					newExtrema = users.get(j);
+					newExtremaNumber = j;
+				}
 			}
+			if (newExtremaNumber != -1) {
+				users.set(newExtremaNumber, users.get(i));
+				users.set(i, newExtrema);
+			}
+		}
+		c.sendBroadcast(new Intent(Notifier.USER_EVENT));
+		return reverse;
+	}
+
+	private static boolean compare(TargetUser a, TargetUser b, int mode, boolean reverse) {
+		switch (mode) {
+			case ALPHABETICALLY:
+				Collator c = Collator.getInstance();
+				c.setStrength(Collator.PRIMARY);
+				return reverse ? (c.compare(a.getJID(), b.getJID()) > 0) : (c.compare(a.getJID(), b.getJID()) < 0);
+			case ONLINE_STATUS:
+				return reverse ? (a.getOnlineStatus() > b.getOnlineStatus()) : (a.getOnlineStatus() < b.getOnlineStatus());
+			default:
+				MainInterface.log("this shouldn't have happened while sorting");
+				return false;
 		}
 	}
 
@@ -85,24 +140,6 @@ public class Preferences extends Activity {
 	public static void setAppUser(ApplicationUser usr) {
 		appUser = usr;
 		c.sendBroadcast(new Intent(Notifier.CREDENTIALS));
-	}
-
-	public static void close() {
-		if(appUser != null) {
-			prefs.edit().putString("user", appUser.getUsername())
-					.putString("password", appUser.getPassword())
-					.putString("domain", appUser.getDomain())
-					.putInt("listener_running", Listener.DISCONNECTED)
-					.putStringSet("ignored_roster_users", ignoredRosterUsers).commit();
-		}
-
-		try {
-			ObjectOutputStream oos = new ObjectOutputStream(c.openFileOutput("targetUsers", MODE_PRIVATE));
-			oos.writeObject(users);
-			oos.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	public TargetUser findUser(String JID) {
@@ -119,6 +156,7 @@ public class Preferences extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		close();
 		super.onCreate(savedInstanceState);
 		getFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
 	}
@@ -126,11 +164,18 @@ public class Preferences extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		try {
+			initialize();
+		} catch (UserNotFoundException e) {
+			MainInterface.log("no app user yet, initiating firststart activity");
+			Notifier.getContext().startActivity(new Intent(Notifier.getContext(), FirstStart.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+			finish();
+		}
 		c.sendBroadcast(new Intent(Notifier.CREDENTIALS));
 	}
 
 	public void addUser(String user) throws InvalidJIDException {
-		if(user.contains("@") && user.contains(".")) {
+		if (user.contains("@") && user.contains(".")) {
 			addUser(user, user.substring(0, user.indexOf("@")));
 		} else {
 			throw new InvalidJIDException(user);
@@ -138,7 +183,7 @@ public class Preferences extends Activity {
 	}
 
 	public void addUser(String user, String nick) throws InvalidJIDException {
-		if(findUser(user) == null) {
+		if (findUser(user) == null) {
 			users.add(new TargetUser(user, nick));
 			c.sendBroadcast(new Intent(Notifier.USER_EVENT));
 		}
@@ -154,8 +199,8 @@ public class Preferences extends Activity {
 	}
 
 	public int getUserId(String JID) throws UserNotFoundException {
-		for(User current : users) {
-			if(current.getJID().equals(JID)) {
+		for (User current : users) {
+			if (current.getJID().equals(JID)) {
 				return users.indexOf(current);
 			}
 		}
@@ -195,7 +240,7 @@ public class Preferences extends Activity {
 		prefs.edit().clear().commit();
 		appUser = null;
 		users = new ArrayList<>();
-		if(usersFile.delete()) {
+		if (usersFile.delete()) {
 			MainInterface.log("file has been deleted successfully!");
 		} else {
 			MainInterface.log("file has NOT been deleted successfully!");
@@ -207,43 +252,5 @@ public class Preferences extends Activity {
 		c.startActivity(i);
 
 		finish();
-	}
-
-	public static boolean sortUsers(int mode) {
-		int i;
-		int j;
-		TargetUser newExtrema;
-		int newExtremaNumber = -1;
-		boolean reverse = !compare(users.get(0), users.get(users.size() - 1), mode, false);
-		for(i = 0; i < users.size() - 1; i++) {
-			newExtrema = null;
-			newExtremaNumber = -1;
-			for(j = i + 1; j < users.size(); j++) {
-				if(compare(users.get(i), users.get(j), mode, reverse)) {
-					newExtrema = users.get(j);
-					newExtremaNumber = j;
-				}
-			}
-			if(newExtremaNumber != -1) {
-				users.set(newExtremaNumber, users.get(i));
-				users.set(i, newExtrema);
-			}
-		}
-		c.sendBroadcast(new Intent(Notifier.USER_EVENT));
-		return reverse;
-	}
-
-	private static boolean compare(TargetUser a, TargetUser b, int mode, boolean reverse) {
-		switch (mode) {
-			case ALPHABETICALLY:
-				Collator c = Collator.getInstance();
-				c.setStrength(Collator.PRIMARY);
-				return reverse ? (c.compare(a.getJID(), b.getJID()) > 0) : (c.compare(a.getJID(), b.getJID()) < 0);
-			case ONLINE_STATUS:
-				return reverse ? (a.getOnlineStatus() > b.getOnlineStatus()) : (a.getOnlineStatus() < b.getOnlineStatus());
-			default:
-				MainInterface.log("this shouldn't have happened while sorting");
-				return false;
-		}
 	}
 }

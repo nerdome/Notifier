@@ -8,15 +8,13 @@ import java.util.ArrayList;
 
 class TargetUser extends User implements Serializable {
 
-	private String nick;
-	private int online = NOT_CHECKED;
-
 	public final static int ONLINE = 0;
 	public final static int HALF_ONLINE = 1;
 	public final static int OFFLINE = 2;
 	public final static int NOT_IN_ROSTER = 3;
 	public final static int NOT_CHECKED = 4;
-
+	private int online = NOT_CHECKED;
+	private String nick;
 	private ArrayList<String> resources = new ArrayList<>();
 
 	public TargetUser(String JID, String nick) throws InvalidJIDException {
@@ -24,13 +22,13 @@ class TargetUser extends User implements Serializable {
 		setNick(nick);
 	}
 
+	public String getNick() {
+		return nick.equals("") ? username : nick;
+	}
+
 	public void setNick(String nick) {
 		this.nick = nick;
 		Notifier.getContext().sendBroadcast(new Intent(Notifier.USER_CHANGE).putExtra("JID", this.getJID()));
-	}
-
-	public String getNick() {
-		return nick.equals("") ? username : nick;
 	}
 
 	public int getOnlineStatus() {
@@ -38,7 +36,7 @@ class TargetUser extends User implements Serializable {
 	}
 
 	public void updatePresence(Presence presence) {
-		if(presence != null) {
+		if (presence != null) {
 			String resource = presence.getFrom().substring(presence.getFrom().indexOf("/") + 1);
 
 			if (presence.isAvailable() && !resources.contains(resource)) {
@@ -56,9 +54,9 @@ class TargetUser extends User implements Serializable {
 	}
 
 	private void updateOnline() {
-		if(resources.contains("NOTIFIER_RECEIVER")) {
+		if (resources.contains("NOTIFIER_RECEIVER")) {
 			online = ONLINE;
-		} else if(!resources.isEmpty()) {
+		} else if (!resources.isEmpty()) {
 			online = HALF_ONLINE;
 		} else {
 			online = OFFLINE;

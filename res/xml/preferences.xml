@@ -2,15 +2,9 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="User Information">
-        <EditTextPreference android:key="user"
-                            android:title="Username"
-                            android:summary="Set the JID of your XMPP user"
-                            android:defaultValue="" />
-        <EditTextPreference android:key="password"
-                            android:title="Password"
-                            android:summary="Set the password of your XMPP user account"
-                            android:password="true"
-                            android:defaultValue="" />
+        <de.adornis.Notifier.CredentialsPreference android:key="credentials"
+                                                   android:title="Change XMPP Credentials"
+                                                   android:summary="Switch between accounts here" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Noise Maker Behavior">
         <EditTextPreference android:key="activity_after_wake"

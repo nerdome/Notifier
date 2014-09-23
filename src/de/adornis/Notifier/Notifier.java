@@ -23,6 +23,10 @@ public class Notifier extends Application {
 		return version;
 	}
 
+	public static Context getContext() {
+		return self.getApplicationContext();
+	}
+
 	@Override
 	public void onCreate() {
 		self = this;
@@ -31,9 +35,5 @@ public class Notifier extends Application {
 		} catch (PackageManager.NameNotFoundException e) {
 			// lawl this doesn't exist... yes it does -.-
 		}
-	}
-
-	public static Context getContext() {
-		return self.getApplicationContext();
 	}
 }

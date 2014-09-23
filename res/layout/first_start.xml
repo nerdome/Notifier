@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:padding="20dp">
@@ -34,57 +35,12 @@
         android:minHeight="40dp"
         android:longClickable="false" />
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <fragment
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-
-        <EditText
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/username"
-            android:hint="Username..."
-            android:autoText="false"
-            android:text="yorrd"
-            android:inputType="textEmailAddress"
-            android:layout_weight="2"
-            android:gravity="right" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="\@"
-            android:id="@+id/textView3"
-            android:layout_weight="0"
-            android:textSize="24dp" />
-
-        <EditText
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/domain"
-            android:hint="Username..."
-            android:autoText="false"
-            android:text="adornis.de"
-            android:inputType="textEmailAddress"
-            android:layout_weight="3" />
-    </LinearLayout>
-
-    <EditText
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPassword"
-        android:ems="10"
-        android:id="@+id/password"
-        android:layout_gravity="center_horizontal"
-        android:hint="Password..."
-        android:text="123vorbei" />
-
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Show Password"
-        android:id="@+id/visiblePassword"
-        android:checked="false" />
+        android:name="de.adornis.Notifier.CredentialsFragment"
+        android:id="@+id/credentials"
+        tools:layout="@layout/credentials_dialog" />
 
     <Button
         android:layout_width="match_parent"

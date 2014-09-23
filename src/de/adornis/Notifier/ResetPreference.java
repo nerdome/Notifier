@@ -16,7 +16,7 @@ public class ResetPreference extends DialogPreference {
 
 	@Override
 	protected void onDialogClosed(boolean positiveResult) {
-		if(positiveResult) {
+		if (positiveResult) {
 			try {
 				(new Preferences()).reset();
 			} catch (UserNotFoundException e) {

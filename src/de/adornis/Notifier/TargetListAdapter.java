@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.TextView;
 
 public class TargetListAdapter extends BaseAdapter {
@@ -51,7 +50,7 @@ public class TargetListAdapter extends BaseAdapter {
 			}
 		});
 
-		switch(getItem(position).getOnlineStatus()) {
+		switch (getItem(position).getOnlineStatus()) {
 			case TargetUser.NOT_CHECKED:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 80, 80));
 				convertView.setBackgroundColor(Color.rgb(70, 70, 70));

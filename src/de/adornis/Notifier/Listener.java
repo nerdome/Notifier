@@ -3,7 +3,10 @@ package de.adornis.Notifier;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.CountDownTimer;
@@ -25,7 +28,7 @@ public class Listener extends Service {
 	public final static int DISCONNECTED = 2;
 	public final static int DISCONNECTING = 3;
 
-    private XMPPTCPConnection conn = null;
+	private XMPPTCPConnection conn = null;
 
 	private Preferences prefs;
 
@@ -48,7 +51,7 @@ public class Listener extends Service {
 	public void fetchInitialOnlineStates(String JID) {
 		for (RosterEntry current : conn.getRoster().getEntries()) {
 			try {
-				if(JID.equals("") || current.getUser().equals(JID)) {
+				if (JID.equals("") || current.getUser().equals(JID)) {
 					prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresence(current.getUser()));
 				}
 			} catch (UserNotFoundException e) {
@@ -69,43 +72,43 @@ public class Listener extends Service {
 	}
 
 	@Override
-    public IBinder onBind(Intent intent) {
-        return new ListenerBinder();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-	    registerReceiver(credentialsReceiver, new IntentFilter(Notifier.CREDENTIALS));
-	    registerReceiver(userEventReceiver, new IntentFilter(Notifier.USER_EVENT));
-
-	    try {
-		    prefs = new Preferences();
-	    } catch (UserNotFoundException e) {
-		    stopSelf();
-	    }
-	    prefs.setConnected(DISCONNECTED);
-
-	    attemptConnect();
-
-        flags = START_STICKY;
-        Notification.Builder nb = new Notification.Builder(getApplicationContext());
-        nb.setDefaults(Notification.DEFAULT_VIBRATE);
-	    nb.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainInterface.class), 0));
-        startForeground(1234, nb.build());
-        return super.onStartCommand(intent, flags, startId);
-    }
+	public IBinder onBind(Intent intent) {
+		return new ListenerBinder();
+	}
 
 	@Override
-    public void onDestroy() {
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		registerReceiver(credentialsReceiver, new IntentFilter(Notifier.CREDENTIALS));
+		registerReceiver(userEventReceiver, new IntentFilter(Notifier.USER_EVENT));
+
+		try {
+			prefs = new Preferences();
+		} catch (UserNotFoundException e) {
+			stopSelf();
+		}
+		prefs.setConnected(DISCONNECTED);
+
+		attemptConnect();
+
+		flags = START_STICKY;
+		Notification.Builder nb = new Notification.Builder(getApplicationContext());
+		nb.setDefaults(Notification.DEFAULT_VIBRATE);
+		nb.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainInterface.class), 0));
+		startForeground(1234, nb.build());
+		return super.onStartCommand(intent, flags, startId);
+	}
+
+	@Override
+	public void onDestroy() {
 		disconnect();
-        super.onDestroy();
-    }
+		super.onDestroy();
+	}
 
 	public void attemptConnect() {
 		MainInterface.log(">> connecting");
 		prefs.setConnected(CONNECTING);
-		if(listener != null) {
-			if(listener.getStatus().equals(AsyncTask.Status.FINISHED)) {
+		if (listener != null) {
+			if (listener.getStatus().equals(AsyncTask.Status.FINISHED)) {
 				listener = new ListenerThread();
 				listener.execute();
 			} else {
@@ -125,31 +128,32 @@ public class Listener extends Service {
 		disconnect(false);
 	}
 
-    private void disconnect(final boolean restart) {
-	    MainInterface.log("<< disconnecting");
-        (new Thread(new Runnable() {
-            @Override
-            public void run() {
-	            prefs.setConnected(DISCONNECTING);
-	            if (conn != null) {
-		            try {
-			            conn.disconnect();
-		            } catch (SmackException.NotConnectedException e) {
-			            MainInterface.log("already disconnected or not yet connected");
-		            }
-		            for (TargetUser current : prefs.getUsers()) {
-			            current.updatePresence(null);
-		            }
-		            if (listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
-			            prefs.setConnected(DISCONNECTED);
-		            }
-		            if (restart) {
-			            attemptConnect();
-		            }
-	            }
-            }
-        })).start();
-    }
+	private void disconnect(final boolean restart) {
+		MainInterface.log("<< disconnecting");
+		(new Thread(new Runnable() {
+			@Override
+			public void run() {
+				prefs.setConnected(DISCONNECTING);
+				if (conn != null) {
+					try {
+						conn.disconnect();
+					} catch (SmackException.NotConnectedException e) {
+						MainInterface.log("already disconnected or not yet connected");
+					}
+					for (TargetUser current : prefs.getUsers()) {
+						current.updatePresence(null);
+					}
+					if (listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
+						// when the app user isn't authorized, this isn't reached and he's blocked from turning on the listener again
+						prefs.setConnected(DISCONNECTED);
+					}
+					if (restart) {
+						attemptConnect();
+					}
+				}
+			}
+		})).start();
+	}
 
 	public Roster getRoster() {
 		return conn.getRoster();
@@ -236,7 +240,7 @@ public class Listener extends Service {
 			conn.getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
 			conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
-			if(conn.isConnected()) {
+			if (conn.isConnected()) {
 				prefs.setConnected(CONNECTED);
 			}
 
@@ -252,8 +256,8 @@ public class Listener extends Service {
 								Map<String, Object> props = JivePropertiesManager.getProperties(message);
 								if (props.containsKey("ALARM")) {
 									publishProgress((String) props.get("ALARM"));
-								} else if(props.containsKey("PING")) {
-									if(props.get("PING").equals("request")) {
+								} else if (props.containsKey("PING")) {
+									if (props.get("PING").equals("request")) {
 										Message msg = new Message();
 										msg.setTo(message.getFrom());
 										JivePropertiesManager.addProperty(msg, "PING", "reply");
@@ -263,7 +267,7 @@ public class Listener extends Service {
 											MainInterface.log("Couldn't ping back because there was a connection issue");
 											e.printStackTrace();
 										}
-									} else if(props.get("PING").equals("reply")) {
+									} else if (props.get("PING").equals("reply")) {
 										try {
 											prefs.getUser(message.getFrom().substring(0, message.getFrom().indexOf("/"))).incomingPing();
 										} catch (UserNotFoundException e) {
@@ -348,7 +352,7 @@ public class Listener extends Service {
 			Message out = new Message(message.getFrom());
 			out.setBody("This message should probably not have landed in the NOTIFIER_RECEIVER resource, am I right? \"" + message.getBody() + " \"");
 			MainInterface.log("returning message to " + out.getTo());
-			if(!out.getTo().startsWith(prefs.getAppUser().getJID())) {
+			if (!out.getTo().startsWith(prefs.getAppUser().getJID())) {
 				try {
 					conn.sendPacket(out);
 				} catch (SmackException.NotConnectedException e) {
