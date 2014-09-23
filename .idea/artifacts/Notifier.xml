@@ -1,0 +1,22 @@
+<component name="ArtifactManager">
+  <artifact type="apk" build-on-make="true" name="Notifier">
+    <output-path>/mnt/nfs_web/dl</output-path>
+    <properties id="android-properties">
+      <options>
+        <option name="keyAlias" value="Adornis" />
+        <option name="keyPassword" value="MTIzdm9yYmVp" />
+        <option name="keyStorePassword" value="MTIzdm9yYmVp" />
+        <option name="keyStoreUrl" value="file://$PROJECT_DIR$/../keystore.jks" />
+        <option name="proGuardCfgFiles">
+          <list>
+            <option value="file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt" />
+          </list>
+        </option>
+        <option name="signingMode" value="RELEASE_SIGNED" />
+      </options>
+    </properties>
+    <root id="archive" name="Notifier.apk">
+      <element id="android-final-package" facet="Notifier/android/Android" />
+    </root>
+  </artifact>
+</component>
