@@ -43,10 +43,10 @@ public class Verificator extends AsyncTask<String, Void, Boolean> {
 
 	@Override
 	protected void onPostExecute(Boolean success) {
-		listener.onResult(success);
+		listener.onResult(success, user, password, domain);
 	}
 
 	public interface OnVerificatorListener {
-		public void onResult(boolean success);
+		public void onResult(boolean success, String user, String password, String domain);
 	}
 }

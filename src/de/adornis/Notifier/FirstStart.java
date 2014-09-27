@@ -5,14 +5,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 public class FirstStart extends Activity {
 
 	private Button verify;
-	private ProgressBar progressBar;
-	private TextView statusTextView;
 
 	private CredentialsFragment credentials;
 
@@ -23,24 +19,21 @@ public class FirstStart extends Activity {
 
 		credentials = (CredentialsFragment) getFragmentManager().findFragmentById(R.id.credentials);
 		verify = (Button) findViewById(R.id.verify);
-		progressBar = (ProgressBar) findViewById(R.id.progressBar);
-		statusTextView = (TextView) findViewById(R.id.statusText);
 
-		statusTextView.setText("");
-		statusTextView.setVisibility(View.VISIBLE);
+		credentials.setStatusText("");
 		verify.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				credentials.setUserInput(credentials.getUserInput().toLowerCase());
-				progressBar.setVisibility(View.VISIBLE);
+				credentials.setProgress(true);
 
 				if (credentials.getDomainInput().contains(".")) {
 					Verificator ver = new Verificator(new Verificator.OnVerificatorListener() {
 						@Override
-						public void onResult(boolean success) {
+						public void onResult(boolean success, String user, String password, String domain) {
 							if (success) {
 								try {
-									Preferences.setAppUser(new ApplicationUser(credentials.getUserInput(), credentials.getPasswordInput(), credentials.getDomainInput()));
+									Preferences.setAppUser(new ApplicationUser(user, password, domain));
 								} catch (InvalidJIDException e) {
 									MainInterface.log("Invalid JID, shouldn't happen though because they have been verified");
 								}
@@ -49,15 +42,15 @@ public class FirstStart extends Activity {
 								finish();
 							} else {
 								Preferences.setAppUser(null);
-								statusTextView.setText("Please use your JID (user@domain), the login process was not successful");
-								progressBar.setVisibility(View.INVISIBLE);
+								credentials.setStatusText("Please use your JID (user@domain), the login process was not successful");
+								credentials.setProgress(false);
 							}
 						}
 					});
 					ver.execute(credentials.getUserInput(), credentials.getPasswordInput(), credentials.getDomainInput());
 				} else {
-					statusTextView.setText("You did not enter a proper domain");
-					progressBar.setVisibility(View.INVISIBLE);
+					credentials.setStatusText("You did not enter a proper domain");
+					credentials.setProgress(false);
 				}
 			}
 		});

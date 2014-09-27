@@ -20,14 +20,5 @@ public class SettingsFragment extends PreferenceFragment {
 				return true;
 			}
 		});
-
-		findPreference("credentials").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-			@Override
-			public boolean onPreferenceClick(Preference preference) {
-				// TODO make sure the values are verified and stored when leaving preferences
-				// TODO FirstStart use the CredentialsFragment
-				return true;
-			}
-		});
 	}
 }

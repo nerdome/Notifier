@@ -141,6 +141,7 @@ public class MainInterface extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			MainInterface.log("got stop command");
+			targetListUpdated();
 			finish();
 		}
 	};

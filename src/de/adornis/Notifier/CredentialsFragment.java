@@ -6,9 +6,7 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
+import android.widget.*;
 
 public class CredentialsFragment extends Fragment {
 
@@ -16,6 +14,8 @@ public class CredentialsFragment extends Fragment {
 	private EditText userEditText;
 	private EditText passwordEditText;
 	private EditText domainEditText;
+	private TextView statusText;
+	private ProgressBar progress;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -31,6 +31,9 @@ public class CredentialsFragment extends Fragment {
 		domainEditText = (EditText) getView().findViewById(R.id.domain);
 		showPasswordCheckbox = (CheckBox) getView().findViewById(R.id.visiblePassword);
 
+		statusText = (TextView) getView().findViewById(R.id.statusText);
+		progress = (ProgressBar) getView().findViewById(R.id.progressBar);
+
 		showPasswordCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -41,16 +44,6 @@ public class CredentialsFragment extends Fragment {
 				}
 			}
 		});
-	}
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-	}
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
 	}
 
 	public String getUserInput() {
@@ -75,5 +68,18 @@ public class CredentialsFragment extends Fragment {
 
 	public void setDomainInput(String input) {
 		domainEditText.setText(input);
+	}
+
+	public void setStatusText(String statusText) {
+		if (statusText.equals("")) {
+			this.statusText.setVisibility(View.GONE);
+		} else {
+			this.statusText.setVisibility(View.VISIBLE);
+		}
+		this.statusText.setText(statusText);
+	}
+
+	public void setProgress(boolean shown) {
+		this.progress.setVisibility(shown ? View.VISIBLE : View.GONE);
 	}
 }
