@@ -52,21 +52,10 @@ public class Listener extends Service {
 		for (RosterEntry current : conn.getRoster().getEntries()) {
 			try {
 				if (JID.equals("") || current.getUser().equals(JID)) {
-					prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresence(current.getUser()));
+					prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresences(current.getUser()));
 				}
 			} catch (UserNotFoundException e) {
 				getApplicationContext().sendBroadcast(new Intent(Notifier.USER_PROPOSE_LIST).putExtra("JID", current.getUser()));
-			}
-		}
-
-		for (TargetUser current : prefs.getUsers()) {
-			Message msg = new Message();
-			msg.setTo(current.getJID() + "/NOTIFIER_RECEIVER");
-			JivePropertiesManager.addProperty(msg, "PING", "request");
-			try {
-				conn.sendPacket(msg);
-			} catch (SmackException.NotConnectedException e) {
-				attemptConnect();
 			}
 		}
 	}
@@ -141,7 +130,7 @@ public class Listener extends Service {
 						MainInterface.log("already disconnected or not yet connected");
 					}
 					for (TargetUser current : prefs.getUsers()) {
-						current.updatePresence(null);
+						current.updatePresence();
 					}
 					if (listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
 						// when the app user isn't authorized, this isn't reached and he's blocked from turning on the listener again
@@ -256,24 +245,6 @@ public class Listener extends Service {
 								Map<String, Object> props = JivePropertiesManager.getProperties(message);
 								if (props.containsKey("ALARM")) {
 									publishProgress((String) props.get("ALARM"));
-								} else if (props.containsKey("PING")) {
-									if (props.get("PING").equals("request")) {
-										Message msg = new Message();
-										msg.setTo(message.getFrom());
-										JivePropertiesManager.addProperty(msg, "PING", "reply");
-										try {
-											conn.sendPacket(msg);
-										} catch (SmackException.NotConnectedException e) {
-											MainInterface.log("Couldn't ping back because there was a connection issue");
-											e.printStackTrace();
-										}
-									} else if (props.get("PING").equals("reply")) {
-										try {
-											prefs.getUser(message.getFrom().substring(0, message.getFrom().indexOf("/"))).incomingPing();
-										} catch (UserNotFoundException e) {
-											MainInterface.log("User " + e.getUser() + " pinged back but isn't on the list");
-										}
-									}
 								} else {
 									returnMessage(message);
 								}

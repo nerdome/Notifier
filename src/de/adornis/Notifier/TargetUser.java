@@ -5,6 +5,7 @@ import org.jivesoftware.smack.packet.Presence;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 class TargetUser extends User implements Serializable {
 
@@ -35,22 +36,29 @@ class TargetUser extends User implements Serializable {
 		return online;
 	}
 
+	public void updatePresence() {
+		online = NOT_CHECKED;
+		resources.clear();
+	}
+
 	public void updatePresence(Presence presence) {
-		if (presence != null) {
-			String resource = presence.getFrom().substring(presence.getFrom().indexOf("/") + 1);
+		String resource = presence.getFrom().substring(presence.getFrom().indexOf("/") + 1);
 
-			if (presence.isAvailable() && !resources.contains(resource)) {
-				resources.add(resource);
-			} else if (!presence.isAvailable() && resources.contains(resource)) {
-				resources.remove(resource);
-			}
-
-			updateOnline();
-		} else {
-			online = NOT_CHECKED;
-			resources.remove("NOTIFIER_RECEIVER");
+		if (presence.isAvailable() && !resources.contains(resource)) {
+			resources.add(resource);
+		} else if (!presence.isAvailable() && resources.contains(resource)) {
+			resources.remove(resource);
 		}
+
+		updateOnline();
 		Notifier.getContext().sendBroadcast(new Intent(Notifier.USER_CHANGE).putExtra("JID", this.getJID()));
+	}
+
+	public void updatePresence(List<Presence> presence) {
+		updatePresence();
+		for (Presence current : presence) {
+			updatePresence(current);
+		}
 	}
 
 	private void updateOnline() {
@@ -62,11 +70,5 @@ class TargetUser extends User implements Serializable {
 			online = OFFLINE;
 		}
 
-	}
-
-	public void incomingPing() {
-		resources.add("NOTIFIER_RECEIVER");
-		updateOnline();
-		Notifier.getContext().sendBroadcast(new Intent(Notifier.USER_CHANGE).putExtra("JID", this.getJID()));
 	}
 }
