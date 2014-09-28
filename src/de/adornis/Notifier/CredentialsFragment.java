@@ -3,12 +3,16 @@ package de.adornis.Notifier;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.*;
 
 public class CredentialsFragment extends Fragment {
+
+	private OnDoneListener onDoneListener;
 
 	private CheckBox showPasswordCheckbox;
 	private EditText userEditText;
@@ -38,6 +42,18 @@ public class CredentialsFragment extends Fragment {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | (isChecked ? InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD : InputType.TYPE_TEXT_VARIATION_PASSWORD));
+			}
+		});
+
+		passwordEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				boolean handled = false;
+				if (actionId == EditorInfo.IME_ACTION_SEND && onDoneListener != null) {
+					onDoneListener.onDone(userEditText.getText().toString(), passwordEditText.getText().toString(), domainEditText.getText().toString());
+					handled = true;
+				}
+				return handled;
 			}
 		});
 	}
@@ -77,5 +93,13 @@ public class CredentialsFragment extends Fragment {
 
 	public void setProgress(boolean shown) {
 		this.progress.setVisibility(shown ? View.VISIBLE : View.GONE);
+	}
+
+	public void setOnDoneListener(OnDoneListener listener) {
+		onDoneListener = listener;
+	}
+
+	interface OnDoneListener {
+		void onDone(String user, String password, String domain);
 	}
 }

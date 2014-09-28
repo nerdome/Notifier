@@ -188,7 +188,7 @@ public class Listener extends Service {
 	}
 
 	public class ListenerBinder extends Binder {
-		public Service getService() {
+		public Listener getService() {
 			return Listener.this;
 		}
 	}

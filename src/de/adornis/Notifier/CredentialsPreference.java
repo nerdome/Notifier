@@ -6,15 +6,18 @@ import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.*;
 
 public class CredentialsPreference extends Preference {
 
+	private ViewGroup thisView;
+
 	private SharedPreferences sp;
-	private ViewGroup preferenceView;
 	private ViewGroup detailView;
 	private Button save;
 	private EditText user;
@@ -32,42 +35,41 @@ public class CredentialsPreference extends Preference {
 
 	@Override
 	protected View onCreateView(ViewGroup parent) {
-		MainInterface.log("on create view");
+		View superView = super.onCreateView(parent);
 
-		View v = LayoutInflater.from(Notifier.getContext()).inflate(R.layout.credentials_dialog, null);
+		detailView = (ViewGroup) LayoutInflater.from(Notifier.getContext()).inflate(R.layout.credentials_dialog, null);
+		((ViewGroup) superView).addView(detailView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
-		preferenceView = (ViewGroup) v.findViewById(R.id.titleSummary);
-		detailView = (ViewGroup) v.findViewById(R.id.editValues);
-		save = (Button) v.findViewById(R.id.save);
-		status = (TextView) v.findViewById(R.id.statusText);
-		progress = (ProgressBar) v.findViewById(R.id.progressBar);
+		save = new Button(getContext());
+		save.setText("Save");
+		save.setVisibility(View.GONE);
+		((ViewGroup) superView).addView(save, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT, 0));
+
+		return superView;
+	}
+
+	@Override
+	protected void onBindView(View view) {
+		super.onBindView(view);
+
+		this.thisView = (ViewGroup) view;
+
+		status = (TextView) thisView.findViewById(R.id.statusText);
+		progress = (ProgressBar) thisView.findViewById(R.id.progressBar);
 
 		user = (EditText) detailView.findViewById(R.id.username);
 		password = (EditText) detailView.findViewById(R.id.password);
 		domain = (EditText) detailView.findViewById(R.id.domain);
 		visiblePassword = (CheckBox) detailView.findViewById(R.id.visiblePassword);
 
-		return v;
-	}
-
-	@Override
-	protected void onBindView(View view) {
-		super.onBindView(view);
-		MainInterface.log("onBindView");
-
 		user.setText(sp.getString("user", ""));
 		password.setText(sp.getString("password", ""));
 		domain.setText(sp.getString("domain", ""));
 
-		detailView.setVisibility(View.GONE);
+		thisView.getChildAt(0).setOnClickListener(new EditOnClickListener());
+		thisView.getChildAt(1).setOnClickListener(new EditOnClickListener());
 
-		preferenceView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				detailView.setVisibility(detailView.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
-				save.setVisibility(save.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
-			}
-		});
+		detailView.setVisibility(View.GONE);
 
 		save.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -83,7 +85,22 @@ public class CredentialsPreference extends Preference {
 			}
 		});
 
-		detailView.requestFocus();
+		password.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				boolean handled = false;
+				if (actionId == EditorInfo.IME_ACTION_SEND) {
+					persist();
+					handled = true;
+				}
+				return handled;
+			}
+		});
+
+		status.setVisibility(View.GONE);
+		progress.setVisibility(View.GONE);
+
+		user.requestFocus();
 	}
 
 	private void persist() {
@@ -107,6 +124,12 @@ public class CredentialsPreference extends Preference {
 
 					detailView.setVisibility(View.GONE);
 					save.setVisibility(View.GONE);
+					progress.setVisibility(View.GONE);
+					status.setVisibility(View.GONE);
+					thisView.getChildAt(0).setVisibility(View.VISIBLE);
+					thisView.getChildAt(1).setVisibility(View.VISIBLE);
+					thisView.getChildAt(0).setOnClickListener(new EditOnClickListener());
+					thisView.getChildAt(1).setOnClickListener(new EditOnClickListener());
 				} else {
 					progress.setVisibility(View.GONE);
 					status.setText("Wrong credentials, please try again!");
@@ -115,5 +138,17 @@ public class CredentialsPreference extends Preference {
 			}
 		});
 		v.execute(userValue, passwordValue, domainValue);
+	}
+
+	private class EditOnClickListener implements View.OnClickListener {
+		@Override
+		public void onClick(View v) {
+			detailView.setVisibility(detailView.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+			save.setVisibility(save.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+			thisView.getChildAt(0).setVisibility(View.GONE);
+			thisView.getChildAt(1).setVisibility(View.GONE);
+			thisView.getChildAt(0).setOnClickListener(null);
+			thisView.getChildAt(1).setOnClickListener(null);
+		}
 	}
 }
