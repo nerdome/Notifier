@@ -66,7 +66,7 @@ public class Preferences extends Activity {
 					users = (ArrayList<TargetUser>) in;
 					ois.close();
 					for (TargetUser user : users) {
-						user.updatePresence(null);
+						user.updatePresence();
 					}
 				} catch (IOException e) {
 					e.printStackTrace();

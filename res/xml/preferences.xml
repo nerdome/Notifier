@@ -22,7 +22,7 @@
             android:title="Start after boot" />
     </PreferenceCategory>
     <PreferenceCategory android:title="App Actions">
-        <Preference
+        <de.adornis.Notifier.UpdatePreference
             android:key="update"
             android:summary="Force an update for testing purposes"
             android:title="Force Update" />

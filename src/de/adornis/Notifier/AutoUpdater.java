@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.widget.ProgressBar;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -48,7 +49,7 @@ public class AutoUpdater {
 		}
 	}
 
-	public void update() {
+	public void update(ProgressBar downloadProgress) {
 		new AsyncTask<Void, IOException, Void>() {
 
 			@Override
@@ -73,10 +74,17 @@ public class AutoUpdater {
 					outputFilePath = tempDir + "Notifier_update_" + futureVersion + ".apk";
 					OutputStream os = new FileOutputStream(outputFilePath);
 
+					if (downloadProgress != null) downloadProgress.setMax(connection.getContentLength());
+
 					byte data[] = new byte[4096];
 					int count;
+					int total = 0;
 					while ((count = is.read(data)) != -1) {
+						total += count;
 						os.write(data, 0, count);
+
+						if (downloadProgress != null) downloadProgress.setProgress(total);
+
 					}
 				} catch (MalformedURLException e1) {
 					MainInterface.log("url malformed in auto updater, should never happen because it's hardcoded");

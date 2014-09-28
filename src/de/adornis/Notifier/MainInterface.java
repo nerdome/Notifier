@@ -148,7 +148,7 @@ public class MainInterface extends Activity {
 	private BroadcastReceiver updateReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			updater.update();
+			updater.update(null);
 		}
 	};
 	private BroadcastReceiver invitationReceiver = new BroadcastReceiver() {
