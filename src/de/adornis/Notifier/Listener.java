@@ -74,6 +74,7 @@ public class Listener extends Service {
 			prefs = new Preferences();
 		} catch (UserNotFoundException e) {
 			stopSelf();
+			return 0;
 		}
 		prefs.setConnected(DISCONNECTED);
 

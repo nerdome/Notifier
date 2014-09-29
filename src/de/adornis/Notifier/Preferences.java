@@ -30,6 +30,7 @@ public class Preferences extends Activity {
 	private static Set<String> ignoredRosterUsers;
 	private static File usersFile;
 	private static int listenerRunning = Listener.DISCONNECTED;
+	private static String appAfterWake;
 
 	private static boolean initialized = false;
 
@@ -51,6 +52,7 @@ public class Preferences extends Activity {
 		usersFile = new File(c.getFilesDir(), "targetUsers");
 		listenerRunning = prefs.getInt("listener_running", Listener.DISCONNECTED);
 		ignoredRosterUsers = prefs.getStringSet("ignored_roster_users", new HashSet<String>());
+		appAfterWake = prefs.getString("activity_after_wake", "");
 
 		try {
 			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""), prefs.getString("domain", ""));
@@ -83,7 +85,7 @@ public class Preferences extends Activity {
 
 	public static void close() {
 		if (appUser != null) {
-			prefs.edit().putString("user", appUser.getUsername()).putString("password", appUser.getPassword()).putString("domain", appUser.getDomain()).putInt("listener_running", Listener.DISCONNECTED).putStringSet("ignored_roster_users", ignoredRosterUsers).commit();
+			prefs.edit().putString("user", appUser.getUsername()).putString("password", appUser.getPassword()).putString("domain", appUser.getDomain()).putInt("listener_running", Listener.DISCONNECTED).putStringSet("ignored_roster_users", ignoredRosterUsers).putString("activity_after_wake", appAfterWake).commit();
 		}
 
 		try {
@@ -223,8 +225,12 @@ public class Preferences extends Activity {
 		return prefs.getBoolean("start_after_boot", false);
 	}
 
-	public String getAppAfterNotified() {
-		return prefs.getString("activity_after_wake", "");
+	public String getAppAfterWake() {
+		return appAfterWake;
+	}
+
+	public void setAppAfterWake(String packageName) {
+		appAfterWake = packageName;
 	}
 
 	public void setConnected(int running) {

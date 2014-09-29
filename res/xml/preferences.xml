@@ -8,7 +8,7 @@
             android:title="Change XMPP Credentials" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Noise Maker Behavior">
-        <EditTextPreference
+        <de.adornis.Notifier.AppChooserPreference
             android:defaultValue=""
             android:key="activity_after_wake"
             android:summary="When you have been notified, Notifier will try to open the app in this package"
