@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 public class TargetListAdapter extends BaseAdapter {
 
 	private Context c;
@@ -49,6 +51,14 @@ public class TargetListAdapter extends BaseAdapter {
 				Notifier.getContext().sendBroadcast(new Intent(Notifier.INVITATION).putExtra("JID", getItem(position).getJID()));
 			}
 		});
+
+		TextView resourceView = (TextView) convertView.findViewById(R.id.resources);
+		resourceView.setText("");
+		ArrayList<String> resourceList = getItem(position).getResourceList();
+		for (int i = 0; i < resourceList.size(); i++) {
+			String current = resourceList.get(i);
+			resourceView.setText(resourceView.getText() + current + (i != resourceList.size() - 1 ? " | " : ""));
+		}
 
 		switch (getItem(position).getOnlineStatus()) {
 			case TargetUser.NOT_CHECKED:

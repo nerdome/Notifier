@@ -120,10 +120,10 @@ public class AutoUpdater {
 
 	class VersionChecker extends AsyncTask<Void, IOException, Integer> {
 
-		private boolean notifyAllAftwards = false;
+		private boolean notifyAllAfterwards = false;
 
-		public VersionChecker(boolean notifyAllAftwards) {
-			this.notifyAllAftwards = notifyAllAftwards;
+		public VersionChecker(boolean notifyAllAfterwards) {
+			this.notifyAllAfterwards = notifyAllAfterwards;
 		}
 
 		@Override
@@ -149,7 +149,7 @@ public class AutoUpdater {
 
 		@Override
 		protected void onPostExecute(Integer version) {
-			if (version != currentVersion && notifyAllAftwards) {
+			if (version != currentVersion && notifyAllAfterwards) {
 				Notifier.getContext().sendBroadcast(new Intent(Notifier.UPDATE_AVAILABLE));
 			}
 		}

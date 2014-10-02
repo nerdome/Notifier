@@ -234,14 +234,14 @@ public class MainInterface extends Activity {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				try {
 					if (currentTarget != null) {
-						targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.JID).setVisibility(View.GONE);
+						targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.details).setVisibility(View.GONE);
 					}
 				} catch (UserNotFoundException e) {
 					MainInterface.log(e.getMessage());
 				}
 
 				currentTarget = (TargetUser) targetListView.getAdapter().getItem(position);
-				view.findViewById(R.id.JID).setVisibility(View.VISIBLE);
+				view.findViewById(R.id.details).setVisibility(View.VISIBLE);
 				notifyButton.setEnabled(true);
 			}
 		});

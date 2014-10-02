@@ -69,6 +69,9 @@ class TargetUser extends User implements Serializable {
 		} else {
 			online = OFFLINE;
 		}
+	}
 
+	public ArrayList<String> getResourceList() {
+		return resources;
 	}
 }

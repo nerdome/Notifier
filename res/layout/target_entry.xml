@@ -29,12 +29,28 @@
                 android:text="asdfasdf"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
-            <TextView
-                android:id="@+id/JID"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="asdf@asdf.asdf"
-                android:visibility="gone" />
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:visibility="gone"
+                android:id="@+id/details">
+
+                <TextView
+                    android:id="@+id/JID"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="asdf@asdf.asdf"
+                    android:visibility="visible" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="resource list"
+                    android:id="@+id/resources" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <Button
