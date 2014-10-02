@@ -74,8 +74,8 @@ public class TargetListAdapter extends BaseAdapter {
 				convertView.findViewById(R.id.invite).setVisibility(View.GONE);
 				break;
 			case TargetUser.HALF_ONLINE:
-				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(30, 70, 30));
-				convertView.setBackgroundColor(Color.rgb(20, 50, 20));
+				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 130, 80));
+				convertView.setBackgroundColor(Color.rgb(90, 90, 70));
 				((TextView) convertView.findViewById(R.id.JID)).setText(getItem(position).getJID() + " : only online on a different resource");
 				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
 				break;
