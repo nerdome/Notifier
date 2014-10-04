@@ -2,7 +2,7 @@
 <manifest
     package="de.adornis.Notifier"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="1412417688"
+    android:versionCode="1412434252"
     android:versionName="1.0">
 
     <uses-sdk
