@@ -16,6 +16,8 @@ public class Notifier extends Application {
 	public final static String UPDATE_AVAILABLE = "de.adornis.Notifier.UPDATE_AVAILABLE";
 	public final static String INVITATION = "de.adornis.Notifier.INVITATION";
 
+	public final static String RESOURCE = "NOTIFIER_RECEIVER";
+
 	private static Notifier self;
 	private static int version;
 

@@ -7,7 +7,7 @@ import org.jivesoftware.smackx.jiveproperties.JivePropertiesManager;
 public class MessageConfiguration {
 
 	private String receiver = null;
-	private String resource = "NOTIFIER_RECEIVER";
+	private String resource = Notifier.RESOURCE;
 	private String message = null;
 	private long delay = 0;
 	private TextView countdownView;

@@ -226,7 +226,7 @@ public class Listener extends Service {
 			prefs.setConnected(CONNECTING);
 
 			conn.connect();
-			conn.login(prefs.getAppUser().getUsername(), prefs.getAppUser().getPassword(), "NOTIFIER_RECEIVER");
+			conn.login(prefs.getAppUser().getUsername(), prefs.getAppUser().getPassword(), Notifier.RESOURCE);
 			conn.getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
 			conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
@@ -320,7 +320,7 @@ public class Listener extends Service {
 
 		private void returnMessage(Message message) {
 			Message out = new Message(message.getFrom());
-			out.setBody("This message should probably not have landed in the NOTIFIER_RECEIVER resource, am I right? \"" + message.getBody() + " \"");
+			out.setBody("This message should probably not have landed in the " + Notifier.RESOURCE + " resource, am I right? \"" + message.getBody() + " \"");
 			MainInterface.log("returning message to " + out.getTo());
 			if (!out.getTo().startsWith(prefs.getAppUser().getJID())) {
 				try {

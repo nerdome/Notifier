@@ -62,7 +62,7 @@ class TargetUser extends User implements Serializable {
 	}
 
 	private void updateOnline() {
-		if (resources.contains("NOTIFIER_RECEIVER")) {
+		if (resources.contains(Notifier.RESOURCE)) {
 			online = ONLINE;
 		} else if (!resources.isEmpty()) {
 			online = HALF_ONLINE;
