@@ -232,17 +232,32 @@ public class MainInterface extends Activity {
 		targetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				try {
-					if (currentTarget != null) {
-						targetListView.getChildAt(prefs.getUserId(currentTarget.getJID())).findViewById(R.id.details).setVisibility(View.GONE);
+
+				View currentView = null;
+
+				if (currentTarget != null) {
+					try {
+						currentView = targetListView.getChildAt(prefs.getUserId(currentTarget.getJID()));
+					} catch (UserNotFoundException e) {
+						e.printStackTrace();
 					}
-				} catch (UserNotFoundException e) {
-					MainInterface.log(e.getMessage());
 				}
 
-				currentTarget = (TargetUser) targetListView.getAdapter().getItem(position);
-				view.findViewById(R.id.details).setVisibility(View.VISIBLE);
-				notifyButton.setEnabled(true);
+				if (currentView != null) {
+					currentView.findViewById(R.id.details).setVisibility(View.GONE);
+					currentView.findViewById(R.id.invite).setVisibility(View.GONE);
+				}
+
+				if (currentView == view) {
+					View details = view.findViewById(R.id.details);
+					View invite = view.findViewById(R.id.invite);
+					details.setVisibility(details.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+					invite.setVisibility(invite.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+				} else {
+					view.findViewById(R.id.details).setVisibility(View.VISIBLE);
+					view.findViewById(R.id.invite).setVisibility(View.VISIBLE);
+					currentTarget = prefs.findUser(((TextView) view.findViewById(R.id.JID)).getText().toString());
+				}
 			}
 		});
 		targetListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="horizontal">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingBottom="8dp"
+    android:paddingTop="8dp">
 
     <ImageView
         android:id="@+id/colorCoding"
@@ -11,55 +13,53 @@
         android:layout_height="fill_parent" />
 
     <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:orientation="horizontal">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp">
+
+        <TextView
+            android:id="@+id/nick"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="asdfasdf"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/details"
+            android:visibility="gone">
 
             <TextView
-                android:id="@+id/nick"
+                android:id="@+id/JID"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="asdfasdf"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:text="asdf@asdf.asdf"
+                android:visibility="visible" />
 
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:visibility="gone"
-                android:id="@+id/details">
-
-                <TextView
-                    android:id="@+id/JID"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="asdf@asdf.asdf"
-                    android:visibility="visible" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:text="resource list"
-                    android:id="@+id/resources" />
-            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="resource list"
+                android:id="@+id/resources" />
 
         </LinearLayout>
 
-        <Button
-            android:id="@+id/invite"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:focusable="false"
-            android:text="Invite to Notifier" />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/invite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:text="Invite"
+        android:layout_weight="0"
+        android:layout_gravity="bottom"
+        android:visibility="gone" />
 
 </LinearLayout>
