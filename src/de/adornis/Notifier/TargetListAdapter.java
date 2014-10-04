@@ -79,22 +79,27 @@ public class TargetListAdapter extends BaseAdapter {
 			case TargetUser.NOT_CHECKED:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 80, 80));
 				convertView.setBackgroundColor(Color.rgb(70, 70, 70));
+				convertView.findViewById(R.id.invite).setVisibility(View.GONE);
 				break;
 			case TargetUser.ONLINE:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 130, 80));
 				convertView.setBackgroundColor(Color.rgb(70, 90, 70));
+				convertView.findViewById(R.id.invite).setVisibility(View.GONE);
 				break;
 			case TargetUser.HALF_ONLINE:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 130, 80));
 				convertView.setBackgroundColor(Color.rgb(90, 90, 70));
+				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
 				break;
 			case TargetUser.OFFLINE:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(130, 80, 80));
 				convertView.setBackgroundColor(Color.rgb(90, 70, 70));
+				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
 				break;
 			case TargetUser.NOT_IN_ROSTER:
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 80, 130));
 				convertView.setBackgroundColor(Color.rgb(70, 70, 90));
+				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
 				break;
 		}
 
