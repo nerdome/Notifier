@@ -15,10 +15,19 @@ public class TargetListAdapter extends BaseAdapter {
 
 	private Context c;
 	private Preferences prefs;
+	private TargetUser current = null;
 
 	public TargetListAdapter(Context c) throws UserNotFoundException {
 		this.c = c;
 		prefs = new Preferences();
+	}
+
+	public TargetUser getCurrent() {
+		return current;
+	}
+
+	public void setCurrent(TargetUser newCurrent) {
+		current = newCurrent;
 	}
 
 	@Override
@@ -87,6 +96,14 @@ public class TargetListAdapter extends BaseAdapter {
 				convertView.findViewById(R.id.colorCoding).setBackgroundColor(Color.rgb(80, 80, 130));
 				convertView.setBackgroundColor(Color.rgb(70, 70, 90));
 				break;
+		}
+
+		if (current != null && current.getJID().equals(getItem(position).getJID())) {
+			convertView.findViewById(R.id.details).setVisibility(View.VISIBLE);
+			convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
+		} else {
+			convertView.findViewById(R.id.details).setVisibility(View.GONE);
+			convertView.findViewById(R.id.invite).setVisibility(View.GONE);
 		}
 
 		return convertView;

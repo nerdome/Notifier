@@ -41,7 +41,6 @@ public class MainInterface extends Activity {
 		}
 	};
 	private AutoUpdater updater;
-	private TargetUser currentTarget;
 	private Listener listener = null;
 	private ServiceConnection listenerConnection = new ServiceConnection() {
 		@Override
@@ -233,11 +232,12 @@ public class MainInterface extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+				TargetListAdapter adapter = (TargetListAdapter) targetListView.getAdapter();
 				View currentView = null;
 
-				if (currentTarget != null) {
+				if (adapter.getCurrent() != null) {
 					try {
-						currentView = targetListView.getChildAt(prefs.getUserId(currentTarget.getJID()));
+						currentView = targetListView.getChildAt(prefs.getUserId(adapter.getCurrent().getJID()));
 					} catch (UserNotFoundException e) {
 						e.printStackTrace();
 					}
@@ -251,13 +251,18 @@ public class MainInterface extends Activity {
 				if (currentView == view) {
 					View details = view.findViewById(R.id.details);
 					View invite = view.findViewById(R.id.invite);
-					details.setVisibility(details.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
-					invite.setVisibility(invite.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+					details.setVisibility(details.getVisibility() == View.VISIBLE ? View.VISIBLE : View.GONE);
+					invite.setVisibility(invite.getVisibility() == View.VISIBLE ? View.VISIBLE : View.GONE);
+					if (details.getVisibility() == View.GONE) {
+						adapter.setCurrent(null);
+					}
 				} else {
 					view.findViewById(R.id.details).setVisibility(View.VISIBLE);
 					view.findViewById(R.id.invite).setVisibility(View.VISIBLE);
-					currentTarget = prefs.findUser(((TextView) view.findViewById(R.id.JID)).getText().toString());
+					adapter.setCurrent(prefs.findUser(((TextView) view.findViewById(R.id.JID)).getText().toString()));
 				}
+
+				targetListUpdated();
 			}
 		});
 		targetListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -296,9 +301,10 @@ public class MainInterface extends Activity {
 		notifyButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				MessageConfiguration msgc = new MessageConfiguration(currentTarget.getJID(), messageEditText.getText().toString());
+				TargetUser current = ((TargetListAdapter) targetListView.getAdapter()).getCurrent();
+				MessageConfiguration msgc = new MessageConfiguration(current.getJID(), messageEditText.getText().toString());
 				msgc.setDelay(3, (TextView) findViewById(R.id.countdown));
-				if (currentTarget.getOnlineStatus() == TargetUser.ONLINE) {
+				if (current.getOnlineStatus() == TargetUser.ONLINE) {
 					listener.processMessage(msgc);
 				} else {
 					final MessageConfiguration temp = msgc;
@@ -387,8 +393,7 @@ public class MainInterface extends Activity {
 
 	public void targetListUpdated() {
 		((TargetListAdapter) targetListView.getAdapter()).notifyDataSetChanged();
-		notifyButton.setEnabled(false);
-		currentTarget = null;
+		notifyButton.setEnabled(((TargetListAdapter) targetListView.getAdapter()).getCurrent() != null);
 	}
 
 	@Override
