@@ -282,7 +282,7 @@ public class MainInterface extends Activity {
 			@Override
 			public void onClick(View v) {
 				MessageConfiguration msgc = new MessageConfiguration(currentTarget.getJID(), messageEditText.getText().toString());
-				msgc.setDelay(5000, (TextView) findViewById(R.id.countdown));
+				msgc.setDelay(3, (TextView) findViewById(R.id.countdown));
 				if (currentTarget.getOnlineStatus() == TargetUser.ONLINE) {
 					listener.processMessage(msgc);
 				} else {

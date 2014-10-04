@@ -21,8 +21,8 @@ public class MessageConfiguration {
 		this.resource = resource;
 	}
 
-	public void setDelay(long delay, TextView countdownView) {
-		this.delay = delay;
+	public void setDelay(int delay, TextView countdownView) {
+		this.delay = delay * 1000;
 		this.countdownView = countdownView;
 	}
 
