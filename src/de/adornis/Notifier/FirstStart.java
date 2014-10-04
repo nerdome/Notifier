@@ -12,6 +12,8 @@ public class FirstStart extends Activity {
 
 	private CredentialsFragment credentials;
 
+	private Verificator ver;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -21,28 +23,26 @@ public class FirstStart extends Activity {
 		credentials.setOnDoneListener(new CredentialsFragment.OnDoneListener() {
 			@Override
 			public void onDone(String user, String password, String domain) {
-				shoot(user, password, domain);
+				shoot();
 			}
 		});
 		verify = (Button) findViewById(R.id.verify);
 
 		credentials.setStatusText("");
-		verify.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				shoot(credentials.getUserInput(), credentials.getPasswordInput(), credentials.getDomainInput());
-			}
-		});
+		verify.setOnClickListener(new OnStartVerificationListener());
 	}
 
-	private void shoot(String user, String password, String domain) {
+	private void shoot() {
+		String user = credentials.getUserInput();
+		String password = credentials.getPasswordInput();
+		String domain = credentials.getDomainInput();
+
 		credentials.setStatusText("");
 
 		credentials.setUserInput(credentials.getUserInput().toLowerCase());
-		credentials.setProgress(true);
 
 		if (domain.contains(".")) {
-			Verificator ver = new Verificator(new Verificator.OnVerificatorListener() {
+			ver = new Verificator(new Verificator.OnVerificatorListener() {
 				@Override
 				public void onResult(boolean success, String user, String password, String domain) {
 					if (success) {
@@ -59,12 +59,40 @@ public class FirstStart extends Activity {
 						credentials.setStatusText("Not successful! Either your credentials are wrong or the connection timed out!");
 						credentials.setProgress(false);
 					}
+					verify.setOnClickListener(new OnStartVerificationListener());
 				}
 			});
+			verify.setOnClickListener(new OnCancelVerificationListener());
 			ver.execute(user, password, domain);
 		} else {
 			credentials.setStatusText("You did not enter a proper domain");
 			credentials.setProgress(false);
+		}
+	}
+
+	private class OnStartVerificationListener implements View.OnClickListener {
+		@Override
+		public void onClick(View v) {
+			verify.setText("Abort!");
+			credentials.setProgress(true);
+			MainInterface.log("setting to abort");
+			shoot();
+		}
+	}
+
+	private class OnCancelVerificationListener implements View.OnClickListener {
+		@Override
+		public void onClick(View v) {
+			if (ver != null) {
+				ver.cancel(true);
+				if (ver.isCancelled()) {
+					verify.setText("Let's go!");
+					verify.setOnClickListener(new OnStartVerificationListener());
+				} else {
+					credentials.setStatusText("Aborting the verification failed!");
+				}
+				credentials.setProgress(false);
+			}
 		}
 	}
 }
