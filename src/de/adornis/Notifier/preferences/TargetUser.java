@@ -1,13 +1,14 @@
-package de.adornis.Notifier;
+package de.adornis.Notifier.preferences;
 
 import android.content.Intent;
+import de.adornis.Notifier.Notifier;
 import org.jivesoftware.smack.packet.Presence;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-class TargetUser extends User implements Serializable {
+public class TargetUser extends User implements Serializable {
 
 	public final static int ONLINE = 0;
 	public final static int HALF_ONLINE = 1;

@@ -1,6 +1,6 @@
-package de.adornis.Notifier;
+package de.adornis.Notifier.preferences;
 
-class ApplicationUser extends User {
+public class ApplicationUser extends User {
 
 	private final String password;
 

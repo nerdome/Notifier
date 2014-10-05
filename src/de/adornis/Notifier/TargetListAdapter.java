@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import de.adornis.Notifier.preferences.TargetUser;
 
 import java.util.ArrayList;
 
@@ -17,7 +18,7 @@ public class TargetListAdapter extends BaseAdapter {
 	private Preferences prefs;
 	private TargetUser current = null;
 
-	public TargetListAdapter(Context c) throws UserNotFoundException {
+	public TargetListAdapter(Context c) throws Preferences.UserNotFoundException {
 		this.c = c;
 		prefs = new Preferences();
 	}
@@ -105,7 +106,9 @@ public class TargetListAdapter extends BaseAdapter {
 
 		if (current != null && current.getJID().equals(getItem(position).getJID())) {
 			convertView.findViewById(R.id.details).setVisibility(View.VISIBLE);
-			convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
+			if (getItem(position).getOnlineStatus() != TargetUser.ONLINE && getItem(position).getOnlineStatus() != TargetUser.NOT_CHECKED) {
+				convertView.findViewById(R.id.invite).setVisibility(View.VISIBLE);
+			}
 		} else {
 			convertView.findViewById(R.id.details).setVisibility(View.GONE);
 			convertView.findViewById(R.id.invite).setVisibility(View.GONE);

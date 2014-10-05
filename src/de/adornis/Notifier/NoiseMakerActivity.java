@@ -123,7 +123,9 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 		// Remember that you should never show the action bar if the
 		// status bar is hidden, so hide that too if necessary.
 		ActionBar actionBar = getActionBar();
-		actionBar.hide();
+		if (actionBar != null) {
+			actionBar.hide();
+		}
 
 		MediaMetadataRetriever data = new MediaMetadataRetriever();
 		data.setDataSource(getApplicationContext(), Uri.parse("android.resource://de.adornis.Notifier/" + R.raw.toyphone_dialling));
@@ -143,12 +145,8 @@ public class NoiseMakerActivity extends Activity implements SoundPool.OnLoadComp
 		noiseMaker.cancel(false);
 
 		Intent startIntent = null;
-		try {
-			String packg = (new Preferences()).getAppAfterWake();
-			startIntent = getPackageManager().getLaunchIntentForPackage(packg);
-		} catch (UserNotFoundException e) {
-			MainInterface.log("Couldn't initiate preferences in NoiseMakerActivity onDestroy, setting package to open empty");
-		}
+		String packg = Preferences.getAppAfterWake();
+		startIntent = getPackageManager().getLaunchIntentForPackage(packg);
 
 		if (startIntent == null) {
 			MainInterface.log("Either the user hasn't entered one or the activity to be opened cannot be opened");

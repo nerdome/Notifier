@@ -1,9 +1,9 @@
-package de.adornis.Notifier;
+package de.adornis.Notifier.preferences;
 
 
 import java.io.Serializable;
 
-class User implements Serializable {
+public class User implements Serializable {
 	protected final String JID;
 	protected final String username;
 	protected final String domain;
@@ -43,5 +43,17 @@ class User implements Serializable {
 
 	public String getDomain() {
 		return domain;
+	}
+
+	public static class InvalidJIDException extends Exception {
+		private String JID = "";
+
+		public InvalidJIDException(String JID) {
+			this.JID = JID;
+		}
+
+		public String getJID() {
+			return JID;
+		}
 	}
 }

@@ -1,8 +1,9 @@
-package de.adornis.Notifier;
+package de.adornis.Notifier.preferences;
 
 import android.content.Context;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import de.adornis.Notifier.Preferences;
 
 public class ResetPreference extends DialogPreference {
 
@@ -17,12 +18,7 @@ public class ResetPreference extends DialogPreference {
 	@Override
 	protected void onDialogClosed(boolean positiveResult) {
 		if (positiveResult) {
-			try {
-				(new Preferences()).reset();
-			} catch (UserNotFoundException e) {
-				MainInterface.log("FATAL - exception in ResetPreference in onDialogClosed()");
-				e.printStackTrace();
-			}
+			Preferences.reset();
 		}
 	}
 }

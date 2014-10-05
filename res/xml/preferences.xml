@@ -2,13 +2,13 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="User Information">
-        <de.adornis.Notifier.CredentialsPreference
+        <de.adornis.Notifier.preferences.CredentialsPreference
             android:key="credentials"
             android:summary="Switch between accounts here"
             android:title="Change XMPP Credentials" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Noise Maker Behavior">
-        <de.adornis.Notifier.AppChooserPreference
+        <de.adornis.Notifier.preferences.AppChooserPreference
             android:defaultValue=""
             android:key="activity_after_wake"
             android:summary="When you have been notified, Notifier will try to open the app in this package"
@@ -22,11 +22,11 @@
             android:title="Start after boot" />
     </PreferenceCategory>
     <PreferenceCategory android:title="App Actions">
-        <de.adornis.Notifier.UpdatePreference
+        <de.adornis.Notifier.preferences.UpdatePreference
             android:key="update"
             android:summary="Force an update for testing purposes"
             android:title="Force Update" />
-        <de.adornis.Notifier.ResetPreference
+        <de.adornis.Notifier.preferences.ResetPreference
             android:summary="Reset all user data"
             android:title="Reset app" />
     </PreferenceCategory>

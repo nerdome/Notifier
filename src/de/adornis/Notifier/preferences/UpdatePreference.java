@@ -1,4 +1,4 @@
-package de.adornis.Notifier;
+package de.adornis.Notifier.preferences;
 
 import android.content.Context;
 import android.preference.Preference;
@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import de.adornis.Notifier.AutoUpdater;
 
 public class UpdatePreference extends Preference {
 

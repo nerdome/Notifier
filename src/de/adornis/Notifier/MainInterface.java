@@ -9,6 +9,8 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
+import de.adornis.Notifier.preferences.TargetUser;
+import de.adornis.Notifier.preferences.User;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.RosterEntry;
 
@@ -16,27 +18,22 @@ import java.io.IOException;
 
 public class MainInterface extends Activity {
 
-	private Preferences prefs;
 	private BroadcastReceiver serviceStateReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (prefs != null) {
-				switch (prefs.isConnected()) {
-					case Listener.CONNECTED:
-						setupSwitch(true, true);
-						break;
-					case Listener.CONNECTING:
-						setupSwitch(true, false);
-						break;
-					case Listener.DISCONNECTED:
-						setupSwitch(false, true);
-						break;
-					case Listener.DISCONNECTING:
-						setupSwitch(false, false);
-						break;
-				}
-			} else {
-				setupSwitch(false, false);
+			switch (Preferences.isConnected()) {
+				case Listener.CONNECTED:
+					setupSwitch(true, true);
+					break;
+				case Listener.CONNECTING:
+					setupSwitch(true, false);
+					break;
+				case Listener.DISCONNECTED:
+					setupSwitch(false, true);
+					break;
+				case Listener.DISCONNECTING:
+					setupSwitch(false, false);
+					break;
 			}
 		}
 	};
@@ -46,7 +43,7 @@ public class MainInterface extends Activity {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			listener = ((Listener.ListenerBinder) service).getService();
-			if (prefs.isAutoStart() && prefs.isConnected() == Listener.DISCONNECTED) {
+			if (Preferences.isAutoStart() && Preferences.isConnected() == Listener.DISCONNECTED) {
 				listener.attemptConnect();
 			}
 		}
@@ -71,9 +68,9 @@ public class MainInterface extends Activity {
 	private BroadcastReceiver listProposeReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, final Intent intent) {
-			if (!prefs.isRosterUserIgnored(intent.getStringExtra("JID"))) {
+			if (!Preferences.isRosterUserIgnored(intent.getStringExtra("JID"))) {
 				// ignore first, it will be unignored but this way, we prevent further dialogs from popping up
-				prefs.ignoreRosterUser(intent.getStringExtra("JID"));
+				Preferences.ignoreRosterUser(intent.getStringExtra("JID"));
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
@@ -84,15 +81,15 @@ public class MainInterface extends Activity {
 						builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
-								prefs.ignoreRosterUser(JID);
+								Preferences.ignoreRosterUser(JID);
 							}
 						});
 						builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
 								try {
-									prefs.addUser(JID);
-								} catch (InvalidJIDException e) {
+									Preferences.addUser(JID);
+								} catch (User.InvalidJIDException e) {
 									MainInterface.log("this should never happen, JIDs from the roster should not be wrong");
 								}
 							}
@@ -153,7 +150,11 @@ public class MainInterface extends Activity {
 	private BroadcastReceiver invitationReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			listener.invite(intent.getStringExtra("JID"));
+			try {
+				listener.invite(intent.getStringExtra("JID"));
+			} catch (Preferences.UserNotFoundException e) {
+				Notifier.startWelcome();
+			}
 		}
 	};
 	private ListView targetListView;
@@ -193,13 +194,6 @@ public class MainInterface extends Activity {
 		super.onCreate(savedInstanceState);
 
 		try {
-			prefs = new Preferences();
-		} catch (UserNotFoundException e) {
-			finish();
-			return;
-		}
-
-		try {
 			updater = new AutoUpdater();
 			updater.check();
 		} catch (IOException e) {
@@ -210,9 +204,13 @@ public class MainInterface extends Activity {
 		setContentView(R.layout.main_activity);
 
 		ActionBar actionBar = getActionBar();
-		actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM, ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
+		if (actionBar != null) {
+			actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM, ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
+		}
 		View actionBarView = LayoutInflater.from(this).inflate(R.layout.action_bar, null);
-		actionBar.setCustomView(actionBarView);
+		if (actionBar != null) {
+			actionBar.setCustomView(actionBarView);
+		}
 
 		receiverSwitch = (Switch) actionBarView.findViewById(R.id.receiverSwitch);
 		targetListView = (ListView) findViewById(R.id.targetList);
@@ -224,7 +222,7 @@ public class MainInterface extends Activity {
 
 		try {
 			targetListView.setAdapter(new TargetListAdapter(this));
-		} catch (UserNotFoundException e) {
+		} catch (Preferences.UserNotFoundException e) {
 			MainInterface.log("FATAL - exception while trying to initiate ListView Adapter");
 			e.printStackTrace();
 		}
@@ -237,8 +235,8 @@ public class MainInterface extends Activity {
 
 				if (adapter.getCurrent() != null) {
 					try {
-						currentView = targetListView.getChildAt(prefs.getUserId(adapter.getCurrent().getJID()));
-					} catch (UserNotFoundException e) {
+						currentView = targetListView.getChildAt(Preferences.getUserId(adapter.getCurrent().getJID()));
+					} catch (Preferences.UserNotFoundException e) {
 						e.printStackTrace();
 					}
 				}
@@ -259,7 +257,7 @@ public class MainInterface extends Activity {
 				} else {
 					view.findViewById(R.id.details).setVisibility(View.VISIBLE);
 					view.findViewById(R.id.invite).setVisibility(View.VISIBLE);
-					adapter.setCurrent(prefs.findUser(((TextView) view.findViewById(R.id.JID)).getText().toString()));
+					adapter.setCurrent(Preferences.findUser(((TextView) view.findViewById(R.id.JID)).getText().toString()));
 				}
 
 				targetListUpdated();
@@ -270,7 +268,7 @@ public class MainInterface extends Activity {
 			public boolean onItemLongClick(AdapterView<?> parent, final View view, final int position, long id) {
 				AlertDialog.Builder db = new AlertDialog.Builder(MainInterface.this);
 				db.setTitle("Confirm");
-				db.setMessage("Do you really want to remove " + prefs.getUsers().get(position).getJID() + " from your contact list?");
+				db.setMessage("Do you really want to remove " + Preferences.getUsers().get(position).getJID() + " from your contact list?");
 				db.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -281,8 +279,8 @@ public class MainInterface extends Activity {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						try {
-							prefs.delUser(prefs.getUsers().get(position).getJID());
-						} catch (UserNotFoundException e) {
+							Preferences.delUser(Preferences.getUsers().get(position).getJID());
+						} catch (Preferences.UserNotFoundException e) {
 							MainInterface.log("User " + e + " wasn't found even though this should never happen while removing");
 						}
 
@@ -324,11 +322,11 @@ public class MainInterface extends Activity {
 				String thatNewGuy = targetEditText.getText().toString().toLowerCase();
 				if (!thatNewGuy.equals("")) {
 					try {
-						prefs.addUser(thatNewGuy.trim());
+						Preferences.addUser(thatNewGuy.trim());
 						if (!listener.getRoster().contains(thatNewGuy)) {
 							sendBroadcast(new Intent(Notifier.USER_PROPOSE_ROSTER).putExtra("JID", thatNewGuy));
 						}
-					} catch (InvalidJIDException e) {
+					} catch (User.InvalidJIDException e) {
 						(new AlertDialog.Builder(MainInterface.this)).setTitle("Error").setMessage(e.getJID() + " is not a valid JID (user@domain) or the user exists already").setPositiveButton("OK", null).create().show();
 					}
 				}
@@ -339,10 +337,10 @@ public class MainInterface extends Activity {
 			@Override
 			public void onClick(View v) {
 				for (RosterEntry current : listener.getRoster().getEntries()) {
-					if (prefs.findUser(current.getUser()) == null) {
+					if (Preferences.findUser(current.getUser()) == null) {
 						try {
-							prefs.addUser(current.getUser(), current.getName());
-						} catch (InvalidJIDException e) {
+							Preferences.addUser(current.getUser(), current.getName());
+						} catch (User.InvalidJIDException e) {
 							// users in the roster can't be wrong
 						}
 					}
@@ -350,7 +348,7 @@ public class MainInterface extends Activity {
 			}
 		});
 
-		receiverSwitch.setChecked(prefs.isConnected() == Listener.CONNECTED);
+		receiverSwitch.setChecked(Preferences.isConnected() == Listener.CONNECTED);
 		receiverSwitch.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -409,7 +407,7 @@ public class MainInterface extends Activity {
 		registerReceiver(userEventReceiver, new IntentFilter(Notifier.USER_EVENT));
 		registerReceiver(invitationReceiver, new IntentFilter(Notifier.INVITATION));
 
-		if (prefs.isConnected() == Listener.DISCONNECTED) {
+		if (Preferences.isConnected() == Listener.DISCONNECTED) {
 			startService(new Intent(this, Listener.class));
 		}
 		bindService(new Intent(this, Listener.class), listenerConnection, BIND_AUTO_CREATE);
@@ -436,8 +434,6 @@ public class MainInterface extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (prefs != null) {
-			Preferences.close();
-		}
+		Preferences.close();
 	}
 }

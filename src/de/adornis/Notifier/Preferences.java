@@ -6,6 +6,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import de.adornis.Notifier.preferences.ApplicationUser;
+import de.adornis.Notifier.preferences.PreferencesFragment;
+import de.adornis.Notifier.preferences.TargetUser;
+import de.adornis.Notifier.preferences.User;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,60 +36,11 @@ public class Preferences extends Activity {
 	private static int listenerRunning = Listener.DISCONNECTED;
 	private static String appAfterWake;
 
-	private static boolean initialized = false;
-
-	public Preferences() throws UserNotFoundException {
-		if (!initialized) {
-			try {
-				initialize();
-			} catch (UserNotFoundException e) {
-				MainInterface.log("no app user yet, initiating firststart activity");
-				Notifier.getContext().startActivity(new Intent(Notifier.getContext(), FirstStart.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-				throw e;
-			}
-		}
-	}
-
-	// must be called before making a pref object
-	public static void initialize() throws UserNotFoundException {
-		prefs = PreferenceManager.getDefaultSharedPreferences(c);
-		usersFile = new File(c.getFilesDir(), "targetUsers");
-		listenerRunning = prefs.getInt("listener_running", Listener.DISCONNECTED);
-		ignoredRosterUsers = prefs.getStringSet("ignored_roster_users", new HashSet<String>());
-		appAfterWake = prefs.getString("activity_after_wake", "");
-
-		try {
-			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""), prefs.getString("domain", ""));
-		} catch (InvalidJIDException e) {
-			throw new UserNotFoundException("application user");
-		}
-
-		try {
-			if (!usersFile.createNewFile()) {
-				try {
-					ObjectInputStream ois = new ObjectInputStream(c.openFileInput("targetUsers"));
-					Object in = ois.readObject();
-					users = (ArrayList<TargetUser>) in;
-					ois.close();
-					for (TargetUser user : users) {
-						user.updatePresence();
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		initialized = true;
-	}
+	private static boolean initialized = initialize();
 
 	public static void close() {
 		if (appUser != null) {
-			prefs.edit().putString("user", appUser.getUsername()).putString("password", appUser.getPassword()).putString("domain", appUser.getDomain()).putInt("listener_running", Listener.DISCONNECTED).putStringSet("ignored_roster_users", ignoredRosterUsers).putString("activity_after_wake", appAfterWake).commit();
+			prefs.edit().putString("user", appUser.getUsername()).putString("password", appUser.getPassword()).putString("domain", appUser.getDomain()).putInt("listener_running", Listener.DISCONNECTED).putStringSet("ignored_roster_users", ignoredRosterUsers).putString("activity_after_wake", appAfterWake).apply();
 		}
 
 		try {
@@ -135,7 +90,46 @@ public class Preferences extends Activity {
 		}
 	}
 
-	public ApplicationUser getAppUser() {
+	public static boolean initialize() {
+		prefs = PreferenceManager.getDefaultSharedPreferences(c);
+		usersFile = new File(c.getFilesDir(), "targetUsers");
+		listenerRunning = prefs.getInt("listener_running", Listener.DISCONNECTED);
+		ignoredRosterUsers = prefs.getStringSet("ignored_roster_users", new HashSet<>());
+		appAfterWake = prefs.getString("activity_after_wake", "");
+
+		try {
+			appUser = new ApplicationUser(prefs.getString("user", ""), prefs.getString("password", ""), prefs.getString("domain", ""));
+		} catch (User.InvalidJIDException e) {
+			return false;
+		}
+
+		try {
+			if (!usersFile.createNewFile()) {
+				try {
+					ObjectInputStream ois = new ObjectInputStream(c.openFileInput("targetUsers"));
+					Object in = ois.readObject();
+					users = (ArrayList<TargetUser>) in;
+					ois.close();
+					for (TargetUser user : users) {
+						user.updatePresence();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return true;
+	}
+
+	public static ApplicationUser getAppUser() throws UserNotFoundException {
+		if (!initialized) {
+			throw new UserNotFoundException();
+		}
 		return appUser;
 	}
 
@@ -144,7 +138,7 @@ public class Preferences extends Activity {
 		c.sendBroadcast(new Intent(Notifier.CREDENTIALS));
 	}
 
-	public TargetUser findUser(String JID) {
+	public static TargetUser findUser(String JID) {
 		try {
 			return users.get(getUserId(JID));
 		} catch (UserNotFoundException e) {
@@ -152,39 +146,19 @@ public class Preferences extends Activity {
 		}
 	}
 
-	public ArrayList<TargetUser> getUsers() {
+	public static ArrayList<TargetUser> getUsers() {
 		return users;
 	}
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		close();
-		super.onCreate(savedInstanceState);
-		getFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		try {
-			initialize();
-		} catch (UserNotFoundException e) {
-			MainInterface.log("no app user yet, initiating firststart activity");
-			Notifier.getContext().startActivity(new Intent(Notifier.getContext(), FirstStart.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-			finish();
-		}
-		c.sendBroadcast(new Intent(Notifier.CREDENTIALS));
-	}
-
-	public void addUser(String user) throws InvalidJIDException {
+	public static void addUser(String user) throws User.InvalidJIDException {
 		if (user.contains("@") && user.contains(".")) {
 			addUser(user, user.substring(0, user.indexOf("@")));
 		} else {
-			throw new InvalidJIDException(user);
+			throw new User.InvalidJIDException(user);
 		}
 	}
 
-	public void addUser(String user, String nick) throws InvalidJIDException {
+	public static void addUser(String user, String nick) throws User.InvalidJIDException {
 		if (findUser(user) == null) {
 			users.add(new TargetUser(user, nick));
 			c.sendBroadcast(new Intent(Notifier.USER_EVENT));
@@ -192,15 +166,15 @@ public class Preferences extends Activity {
 		unignoreRosterUser(user);
 	}
 
-	public void delUser(String JID) throws UserNotFoundException {
+	public static void delUser(String JID) throws UserNotFoundException {
 		users.remove(getUserId(JID));
 	}
 
-	public TargetUser getUser(String JID) throws UserNotFoundException {
+	public static TargetUser getUser(String JID) throws UserNotFoundException {
 		return users.get(getUserId(JID));
 	}
 
-	public int getUserId(String JID) throws UserNotFoundException {
+	public static int getUserId(String JID) throws UserNotFoundException {
 		for (User current : users) {
 			if (current.getJID().equals(JID)) {
 				return users.indexOf(current);
@@ -209,41 +183,41 @@ public class Preferences extends Activity {
 		throw new UserNotFoundException(JID);
 	}
 
-	public boolean isRosterUserIgnored(String JID) {
+	public static boolean isRosterUserIgnored(String JID) {
 		return ignoredRosterUsers.contains(JID) || findUser(JID) != null;
 	}
 
-	public void ignoreRosterUser(String JID) {
+	public static void ignoreRosterUser(String JID) {
 		ignoredRosterUsers.add(JID);
 	}
 
-	public void unignoreRosterUser(String JID) {
+	public static void unignoreRosterUser(String JID) {
 		ignoredRosterUsers.remove(JID);
 	}
 
-	public boolean isAutoStart() {
+	public static boolean isAutoStart() {
 		return prefs.getBoolean("start_after_boot", false);
 	}
 
-	public String getAppAfterWake() {
+	public static String getAppAfterWake() {
 		return appAfterWake;
 	}
 
-	public void setAppAfterWake(String packageName) {
+	public static void setAppAfterWake(String packageName) {
 		appAfterWake = packageName;
 	}
 
-	public void setConnected(int running) {
+	public static void setConnected(int running) {
 		listenerRunning = running;
 		c.sendBroadcast(new Intent(Notifier.SERVICE));
 	}
 
-	public int isConnected() {
+	public static int isConnected() {
 		return listenerRunning;
 	}
 
-	public void reset() {
-		prefs.edit().clear().commit();
+	public static void reset() {
+		prefs.edit().clear().apply();
 		appUser = null;
 		users = new ArrayList<>();
 		if (usersFile.delete()) {
@@ -252,11 +226,51 @@ public class Preferences extends Activity {
 			MainInterface.log("file has NOT been deleted successfully!");
 		}
 		c.sendBroadcast(new Intent(Notifier.USER_EVENT));
+		c.sendBroadcast(new Intent(Notifier.STOP));
 
 		Intent i = new Intent(c, FirstStart.class);
 		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		c.startActivity(i);
-
-		finish();
 	}
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		close();
+		super.onCreate(savedInstanceState);
+		getFragmentManager().beginTransaction().replace(android.R.id.content, new PreferencesFragment()).commit();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (!initialize()) {
+			MainInterface.log("no app user yet, initiating firststart activity");
+			Notifier.getContext().startActivity(new Intent(Notifier.getContext(), FirstStart.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+			finish();
+			return;
+		}
+		c.sendBroadcast(new Intent(Notifier.CREDENTIALS));
+	}
+
+	public static class UserNotFoundException extends Exception {
+
+		private String user = "";
+
+		public UserNotFoundException() {
+			user = null;
+		}
+
+		public UserNotFoundException(String user) {
+			this.user = user;
+		}
+
+		public String getUser() {
+			return user;
+		}
+
+		public String getMessage() {
+			return "User " + user + " wasn't found.";
+		}
+	}
+
 }

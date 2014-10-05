@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.IBinder;
+import de.adornis.Notifier.preferences.TargetUser;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
@@ -30,8 +31,6 @@ public class Listener extends Service {
 
 	private XMPPTCPConnection conn = null;
 
-	private Preferences prefs;
-
 	private ListenerThread listener;
 
 	private BroadcastReceiver credentialsReceiver = new BroadcastReceiver() {
@@ -48,13 +47,20 @@ public class Listener extends Service {
 		}
 	};
 
+	private BroadcastReceiver stopReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			stopSelf();
+		}
+	};
+
 	public void fetchInitialOnlineStates(String JID) {
 		for (RosterEntry current : conn.getRoster().getEntries()) {
 			try {
 				if (JID.equals("") || current.getUser().equals(JID)) {
-					prefs.getUser(current.getUser()).updatePresence(conn.getRoster().getPresences(current.getUser()));
+					Preferences.getUser(current.getUser()).updatePresence(conn.getRoster().getPresences(current.getUser()));
 				}
-			} catch (UserNotFoundException e) {
+			} catch (Preferences.UserNotFoundException e) {
 				getApplicationContext().sendBroadcast(new Intent(Notifier.USER_PROPOSE_LIST).putExtra("JID", current.getUser()));
 			}
 		}
@@ -69,14 +75,9 @@ public class Listener extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		registerReceiver(credentialsReceiver, new IntentFilter(Notifier.CREDENTIALS));
 		registerReceiver(userEventReceiver, new IntentFilter(Notifier.USER_EVENT));
+		registerReceiver(stopReceiver, new IntentFilter(Notifier.STOP));
 
-		try {
-			prefs = new Preferences();
-		} catch (UserNotFoundException e) {
-			stopSelf();
-			return 0;
-		}
-		prefs.setConnected(DISCONNECTED);
+		Preferences.setConnected(DISCONNECTED);
 
 		attemptConnect();
 
@@ -90,13 +91,18 @@ public class Listener extends Service {
 
 	@Override
 	public void onDestroy() {
+
+		unregisterReceiver(credentialsReceiver);
+		unregisterReceiver(userEventReceiver);
+		unregisterReceiver(stopReceiver);
+
 		disconnect();
 		super.onDestroy();
 	}
 
 	public void attemptConnect() {
 		MainInterface.log(">> connecting");
-		prefs.setConnected(CONNECTING);
+		Preferences.setConnected(CONNECTING);
 		if (listener != null) {
 			if (listener.getStatus().equals(AsyncTask.Status.FINISHED)) {
 				listener = new ListenerThread();
@@ -123,19 +129,19 @@ public class Listener extends Service {
 		(new Thread(new Runnable() {
 			@Override
 			public void run() {
-				prefs.setConnected(DISCONNECTING);
+				Preferences.setConnected(DISCONNECTING);
 				if (conn != null) {
 					try {
 						conn.disconnect();
 					} catch (SmackException.NotConnectedException e) {
 						MainInterface.log("already disconnected or not yet connected");
 					}
-					for (TargetUser current : prefs.getUsers()) {
+					for (TargetUser current : Preferences.getUsers()) {
 						current.updatePresence();
 					}
 					if (listener.getStatus().equals(AsyncTask.Status.FINISHED) && !conn.isConnected()) {
 						// when the app user isn't authorized, this isn't reached and he's blocked from turning on the listener again
-						prefs.setConnected(DISCONNECTED);
+						Preferences.setConnected(DISCONNECTED);
 					}
 					if (restart) {
 						attemptConnect();
@@ -159,9 +165,11 @@ public class Listener extends Service {
 			@Override
 			public void onFinish() {
 				try {
-					conn.sendPacket(config.getMessage(prefs));
+					conn.sendPacket(config.getMessage());
 				} catch (SmackException.NotConnectedException e) {
 					MainInterface.log("FATAL connection error while sending message");
+				} catch (Preferences.UserNotFoundException e) {
+					MainInterface.log("FATAL No user logged in, can't send");
 				}
 				config.tickInActivity(0);
 			}
@@ -176,10 +184,10 @@ public class Listener extends Service {
 		}
 	}
 
-	public void invite(String JID) {
+	public void invite(String JID) throws Preferences.UserNotFoundException {
 		Message msg = new Message();
 		msg.setTo(JID);
-		msg.setBody(prefs.getAppUser().getJID() + " invites you to join the Notifier force! Go here for more information: www.example.com");
+		msg.setBody(Preferences.getAppUser().getJID() + " invites you to join the Notifier force! Go here for more information: www.example.com");
 		try {
 			conn.sendPacket(msg);
 		} catch (SmackException.NotConnectedException e) {
@@ -196,7 +204,7 @@ public class Listener extends Service {
 
 	private class ListenerThread extends AsyncTask<Void, String, Void> {
 
-		public void connect() throws IOException, XMPPException, SmackException {
+		public void connect() throws IOException, XMPPException, SmackException, Preferences.UserNotFoundException {
 			conn.getRoster().addRosterListener(new RosterListener() {
 				@Override
 				public void entriesAdded(Collection<String> addresses) {
@@ -216,22 +224,22 @@ public class Listener extends Service {
 				@Override
 				public void presenceChanged(Presence presence) {
 					try {
-						prefs.getUser(presence.getFrom().substring(0, presence.getFrom().indexOf("/"))).updatePresence(presence);
-					} catch (UserNotFoundException ignore) {
+						Preferences.getUser(presence.getFrom().substring(0, presence.getFrom().indexOf("/"))).updatePresence(presence);
+					} catch (Preferences.UserNotFoundException ignore) {
 						// user wasn't found, ignoring
 					}
 				}
 			});
 
-			prefs.setConnected(CONNECTING);
+			Preferences.setConnected(CONNECTING);
 
 			conn.connect();
-			conn.login(prefs.getAppUser().getUsername(), prefs.getAppUser().getPassword(), Notifier.RESOURCE);
+			conn.login(Preferences.getAppUser().getUsername(), Preferences.getAppUser().getPassword(), Notifier.RESOURCE);
 			conn.getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
 			conn.sendPacket(new Presence(Presence.Type.available, "awaiting notifier notifications", 0, Presence.Mode.xa));
 
 			if (conn.isConnected()) {
-				prefs.setConnected(CONNECTED);
+				Preferences.setConnected(CONNECTED);
 			}
 
 			fetchInitialOnlineStates("");
@@ -258,7 +266,13 @@ public class Listener extends Service {
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			conn = new XMPPTCPConnection(MainInterface.getConfig(prefs.getAppUser().getDomain(), 5222));
+			try {
+				conn = new XMPPTCPConnection(MainInterface.getConfig(Preferences.getAppUser().getDomain(), 5222));
+			} catch (Preferences.UserNotFoundException e) {
+				stopSelf();
+				Notifier.startWelcome();
+				return null;
+			}
 			try {
 				connect();
 			} catch (SmackException.NoResponseException e) {
@@ -304,6 +318,10 @@ public class Listener extends Service {
 				MainInterface.log("General SmackException while connecting in Listener " + e.getMessage());
 				getApplicationContext().sendBroadcast(new Intent("LISTENER_CONNECTED"));
 				disconnect();
+			} catch (Preferences.UserNotFoundException e) {
+				stopSelf();
+				Notifier.startWelcome();
+				return null;
 			}
 
 			return null;
@@ -322,15 +340,19 @@ public class Listener extends Service {
 			Message out = new Message(message.getFrom());
 			out.setBody("This message should probably not have landed in the " + Notifier.RESOURCE + " resource, am I right? \"" + message.getBody() + " \"");
 			MainInterface.log("returning message to " + out.getTo());
-			if (!out.getTo().startsWith(prefs.getAppUser().getJID())) {
-				try {
-					conn.sendPacket(out);
-				} catch (SmackException.NotConnectedException e) {
-					MainInterface.log("couldn't send message back in returnMessage() in Listener");
-					e.printStackTrace();
+			try {
+				if (!out.getTo().startsWith(Preferences.getAppUser().getJID())) {
+					try {
+						conn.sendPacket(out);
+					} catch (SmackException.NotConnectedException e) {
+						MainInterface.log("couldn't send message back in returnMessage() in Listener");
+						e.printStackTrace();
+					}
+				} else {
+					MainInterface.log("Not sending back to myself");
 				}
-			} else {
-				MainInterface.log("Not sending back to myself");
+			} catch (Preferences.UserNotFoundException e) {
+				Notifier.startWelcome();
 			}
 		}
 	}

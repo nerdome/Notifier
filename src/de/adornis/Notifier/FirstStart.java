@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import de.adornis.Notifier.preferences.ApplicationUser;
+import de.adornis.Notifier.preferences.User;
 
 public class FirstStart extends Activity {
 
@@ -48,7 +50,7 @@ public class FirstStart extends Activity {
 					if (success) {
 						try {
 							Preferences.setAppUser(new ApplicationUser(user, password, domain));
-						} catch (InvalidJIDException e) {
+						} catch (User.InvalidJIDException e) {
 							MainInterface.log("Invalid JID, shouldn't happen though because they have been verified");
 						}
 						Preferences.close();

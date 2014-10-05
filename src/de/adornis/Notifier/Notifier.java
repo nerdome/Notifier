@@ -2,6 +2,7 @@ package de.adornis.Notifier;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 
 public class Notifier extends Application {
@@ -27,6 +28,10 @@ public class Notifier extends Application {
 
 	public static Context getContext() {
 		return self.getApplicationContext();
+	}
+
+	public static void startWelcome() {
+		self.startActivity(new Intent(self, FirstStart.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 	}
 
 	@Override
